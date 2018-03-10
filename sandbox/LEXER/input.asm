@@ -1,12 +1,12 @@
 .data
-a: .word 10
-b: .word 10
+a: .word 10 #una palabra
+b: .word 10 # otra
 sum: .word 0
 
 perrito: .asciiz "hi folks"
 
 .text
-.globl main
+.globl main #remember
 main:
 	lw $t0, a
 	lw $t1, b

@@ -1,0 +1,16 @@
+currently included:
+add
+addu
+sub
+subu
+mult
+div
+slt
+sll
+srl
+sra
+jr
+and
+or
+mfhi
+mflo

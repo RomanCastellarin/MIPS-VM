@@ -14,7 +14,8 @@ using namespace std;
 #define SHIFT(x)    (((x)&0x7C0)>>6)
 #define FUNCT(x)    ((x)&127)
 #define IMM(x)      ((x)&0xFFFF)
-#define ADDR(x)      ((x)&0x3FFFFFF)
+#define ADDR(x)     ((x)&0x3FFFFFF)
+
 
 typedef uint32_t instruction;
 
@@ -50,10 +51,36 @@ void decode(instruction s){
     puts("");
 }
 
-int main(){
-    decode(0x014B4820);
-    decode(0x02531022);
+void pb(uint64_t n){
+    if( !n ) return;
+    pb(n>>1);
+    putchar("01"[n&1]);
+}
 
+#define TO_NBIT(x, n) (x & ((1<<n)-1))
+#define TO_INT(x, n) ((x & ((1<<(n-1))-1)) - (x&(1<<(n-1))))
+
+
+
+int main(){
+    //decode(0x014B4820);
+    //decode(0x02531022);
+
+    int x = -9;
+    uint32_t y = TO_NBIT(x, 6);
+    int z = TO_INT(y, 6);
+
+    printf("%d %d %d\n", x, y, z);
+
+    pb(y);
+
+    #define pepe1(x) (((x)&0x1F0000)>>16)
+    #define pepe2(x) ((x)&0x1F0000>>16)
+
+    printf("%d %d\n", pepe1(0x02531022), pepe2(0x02531022));
+     
+    pb(4294966972); puts("");
+    pb( 2400620139 );
 
     return 0;
 }

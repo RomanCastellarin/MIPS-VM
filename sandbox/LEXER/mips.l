@@ -26,6 +26,8 @@
     #define LABEL 118
     #define STRING 119
 
+    #define T_COMMENT 121
+    
 	int value;
 	char value1[15];
 %}
@@ -33,11 +35,13 @@
 id 		[a-zA-Z][a-zA-Z0-9]*
 number		[0-9]+
 ws		[ \t\n]+
-string  \".+\"
+string  \"[^\n"]+\"
 label   {id}:
 
 
 %%
+
+"#".*       { strcpy(value1, yytext); return T_COMMENT; }
 
 {string}    { strcpy(value1, yytext); return STRING; } 
 
@@ -118,6 +122,7 @@ int main()
 	{
 		switch(tok)
 		{
+            case T_COMMENT: printf("token = %d : Comment %s\n", T_COMMENT, value1); break;
             case STRING: printf("token = %d : String %s\n", STRING, value1); break;
             case LABEL: printf("token = %d : Label \"%s\"\n", LABEL, value1); break;
 			case T_DATA_DIRECTIVE: printf("token = %d : T_DATA_DIRECTIVE\n", T_DATA_DIRECTIVE); break;
