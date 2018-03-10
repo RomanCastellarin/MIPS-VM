@@ -4,19 +4,17 @@
 
 #include <cstdint>
 
-// TODO: decide width of integer type for rs, rt, shamt, etc. eg: int32_t
-
 // INSTRUCTION TYPE
 typedef uint32_t instruction;
 
 // R TYPE INTRUCTION
-typedef int (*inst_r_t)(int rs, int rt, int rd, int shamt);
+typedef int (*inst_r_t)(int32_t rs, int32_t rt, int32_t rd, int32_t shamt);
 
 // I TYPE INTRUCTION
-typedef int (*inst_i_t)(int rs, int rt, int imm);
+typedef int (*inst_i_t)(int32_t rs, int32_t rt, int32_t imm);
 
 // J TYPE INTRUCTION
-typedef int (*inst_j_t)(int addr);
+typedef int (*inst_j_t)(int32_t addr);
 
 // DECODE FUNCTION
 int decode(instruction i);

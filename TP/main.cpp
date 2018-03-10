@@ -43,6 +43,10 @@ int main(){
     R[REG_V0] = 6;
     status = decode(0x000230C0); // sll $a2, $v0, 3
     printf("%u (status %d)\n", R[REG_A2], status);
+    
+    R[REG_T2] = -5;
+    status = decode(0x2149FFFF); // addi $t1, $t2, -1
+    printf("%d (status %d)\n", R[REG_T1], status);
        
     return 0;
 }

@@ -14,11 +14,15 @@ using namespace std;
 #define IMM(x)      ((x)&0xFFFF)
 #define ADDR(x)     ((x)&0x3FFFFFF)
 
-// TODO: decide width of integer type for rs, rt, shamt, etc. eg: int32_t
+// helpers
+#define SIGN_IMM(x) ((int32_t(x)&0x7FFF) - (int32_t(x)&0x8000))
 
 // INTRUCTOR DECLARATORS
 #define DECL_R_INSTR(x) \
-int x(int rs, int rt, int rd, int shamt)
+int x(int32_t rs, int32_t rt, int32_t rd, int32_t shamt)
+
+#define DECL_I_INSTR(x) \
+int x(int32_t rs, int32_t rt, int32_t imm)
 
 // INSTRUCTIONS
 DECL_R_INSTR(add){
@@ -78,33 +82,68 @@ DECL_R_INSTR(sll){
     return 0;
 }
 
-// TODO: complete
-
 DECL_R_INSTR(srl){
+    R[rd] =  R[rt] >> shamt;
     return 0;
 }
 
 DECL_R_INSTR(sra){
+    int32_t a = R[rt];
+    R[rd] = a >> shamt;
     return 0;
 }
 
-DECL_R_INSTR(jr){
-    return 0;
+DECL_R_INSTR(jr){ // TODO: FIND OUT HOW TO HANDLE MEMORY ADDRESSES
+    return -1;
 }
 
 DECL_R_INSTR(and_){ // and is a reserved C++ keyword
+    R[rd] = R[rs] & R[rt];
     return 0;
 }
 
 DECL_R_INSTR(or_){ // or is a reserved C++ keyword
+    R[rd] = R[rs] | R[rt];
     return 0;
 }
 
 DECL_R_INSTR(mfhi){
+    R[rd] = HI;
     return 0;
 }
 
 DECL_R_INSTR(mflo){
+    R[rd] = LO;
+    return 0;
+}
+
+DECL_I_INSTR(addi){
+    int32_t a = R[rs];
+    int32_t b = SIGN_IMM(imm);
+    R[rt] = a + b;
+    return 0;
+}
+
+DECL_I_INSTR(addiu){
+    int32_t a = R[rs];
+    R[rt] = a + imm;
+    return 0;
+}
+
+DECL_I_INSTR(slti){
+    int32_t a = R[rs];
+    int32_t b = SIGN_IMM(imm);
+    R[rt] = (a < b);
+    return 0;
+}
+
+DECL_I_INSTR(andi){ // zero-extending (MIPS convention)
+    R[rt] = R[rs] & imm;
+    return 0;
+}
+
+DECL_I_INSTR(ori){ // zero-extending (MIPS convention)
+    R[rt] = R[rs] | imm;
     return 0;
 }
 
@@ -129,6 +168,16 @@ map<int, inst_r_t> R_funct = {
     {0x2A, slt}
 };
 
+// I-INSTRUCTION MAP
+map<int, inst_i_t> I_opcodes = {
+    {0x08, addi},
+    {0x09, addiu},
+    {0x0B, slti},
+    {0x0C, andi},
+    {0x0D, ori}
+};
+
+
 // DECODE FUNCTION
 int decode(instruction i){
     unsigned oc = OPCODE(i);
@@ -138,7 +187,7 @@ int decode(instruction i){
         int32_t rt = RT(i);
         int32_t rd = RD(i);
         int32_t shamt = SHAMT(i);
-        int funct = FUNCT(i);
+        int32_t funct = FUNCT(i);
         auto operation = R_funct[funct];
         if( operation )
             return operation(rs, rt, rd, shamt);
@@ -147,6 +196,13 @@ int decode(instruction i){
             printf("funct %u not found\n", funct);            
             return -2;
         }
+    }
+    auto operation = I_opcodes[oc];
+    if( operation ){
+        int32_t rs = RS(i);
+        int32_t rt = RT(i);
+        int32_t imm = IMM(i);
+        return operation(rs, rt, imm);
     }else
         // not implemented
         printf("opcode %u not found\n", oc);
