@@ -4,7 +4,9 @@ addu
 sub
 subu
 mult
+multu
 div
+divu
 slt
 sll
 srl

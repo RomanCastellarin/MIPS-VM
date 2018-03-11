@@ -7,7 +7,7 @@ using namespace std;
 
 int main(){
     // pseudo testing syscalls and registers
-    
+
     R[REG_V0] = 1;
     R[REG_A0] = 65;
     syscall();
@@ -24,7 +24,7 @@ int main(){
     R[REG_S7] = 10;
     int status = decode(0x02E74820); // add $t1, $s7, a3
     printf("%d (status %d)\n", R[REG_T1], status);
-    
+
     R[REG_T1] = 6989001;
     R[REG_S7] = 565432;
     status = decode(0x01370018); // mult $t1, $s7
@@ -43,10 +43,14 @@ int main(){
     R[REG_V0] = 6;
     status = decode(0x000230C0); // sll $a2, $v0, 3
     printf("%u (status %d)\n", R[REG_A2], status);
-    
+
     R[REG_T2] = -5;
     status = decode(0x2149FFFF); // addi $t1, $t2, -1
     printf("%d (status %d)\n", R[REG_T1], status);
-       
+
+    R[REG_V0] = 7;
+    R[REG_V1] = 3;
+    status = decode(0x0043001A); // div $v0,$v1
+    printf("%d %d (status %d)\n",HI,LO,status );
     return 0;
 }

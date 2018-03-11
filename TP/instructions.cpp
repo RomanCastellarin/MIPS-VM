@@ -67,7 +67,19 @@ DECL_R_INSTR(div){
     }catch( ... ){
         return -1;  // TODO: standarize: DISGUSTING !
     }
-        
+
+}
+DECL_R_INSTR(divu){
+    uint64_t a = (uint32_t) R[rs];
+    uint64_t b = (uint32_t) R[rt];
+    try{
+        HI = a % b;
+        LO = a / b;
+        return 0;
+    }catch( ... ){
+        return -1;  // TODO: standarize: DISGUSTING !
+    }
+
 }
 
 DECL_R_INSTR(slt){
@@ -159,6 +171,7 @@ map<int, inst_r_t> R_funct = {
     {0x18, mult},
     {0x19, multu},
     {0x1A, div},
+    {0x1B, divu},
     {0x20, add},
     {0x21, add}, // ADDU TODO: HANDLE OVERFLOW TRAP
     {0x22, sub},
@@ -193,7 +206,7 @@ int decode(instruction i){
             return operation(rs, rt, rd, shamt);
         else{
             // not implement or invalid TODO: STANDARIZE THIS S·H·I·T
-            printf("funct %u not found\n", funct);            
+            printf("funct %u not found\n", funct);
             return -2;
         }
     }
@@ -208,4 +221,3 @@ int decode(instruction i){
         printf("opcode %u not found\n", oc);
         return -1;
 }
-
