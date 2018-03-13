@@ -14,7 +14,9 @@ using namespace std;
 #define IMM(x)      ((x)&0xFFFF)
 #define ADDR(x)     ((x)&0x3FFFFFF)
 
-// helpers
+// HELPERS
+
+// interpret immediate as a signed 16-bit integer (default: unsigned)
 #define SIGN_IMM(x) ((int32_t(x)&0x7FFF) - (int32_t(x)&0x8000))
 
 // INTRUCTOR DECLARATORS
@@ -58,8 +60,8 @@ DECL_R_INSTR(multu){
 }
 
 DECL_R_INSTR(div){
-    int64_t a = (int32_t) R[rs];
-    int64_t b = (int32_t) R[rt];
+    int32_t a = R[rs];
+    int32_t b = R[rt];
     try{
         HI = a % b;
         LO = a / b;
@@ -69,9 +71,10 @@ DECL_R_INSTR(div){
     }
 
 }
+
 DECL_R_INSTR(divu){
-    uint64_t a = (uint32_t) R[rs];
-    uint64_t b = (uint32_t) R[rt];
+    uint32_t a = R[rs];
+    uint32_t b = R[rt];
     try{
         HI = a % b;
         LO = a / b;
@@ -85,6 +88,13 @@ DECL_R_INSTR(divu){
 DECL_R_INSTR(slt){
     int32_t a = R[rs];
     int32_t b = R[rt];
+    R[rd] = (a < b);
+    return 0;
+}
+
+DECL_R_INSTR(sltu){
+    uint32_t a = R[rs];
+    uint32_t b = R[rt];
     R[rd] = (a < b);
     return 0;
 }
@@ -119,6 +129,16 @@ DECL_R_INSTR(or_){ // or is a reserved C++ keyword
     return 0;
 }
 
+DECL_R_INSTR(xor_){ // xor is a reserved C++ keyword
+    R[rd] = R[rs] ^ R[rt];
+    return 0;
+}
+
+DECL_R_INSTR(nor){
+    R[rd] = ~(R[rs] | R[rt]);
+    return 0;
+}
+
 DECL_R_INSTR(mfhi){
     R[rd] = HI;
     return 0;
@@ -145,6 +165,13 @@ DECL_I_INSTR(addiu){
 DECL_I_INSTR(slti){
     int32_t a = R[rs];
     int32_t b = SIGN_IMM(imm);
+    R[rt] = (a < b);
+    return 0;
+}
+
+DECL_I_INSTR(sltiu){
+    uint32_t a = R[rs];
+    uint32_t b = imm;
     R[rt] = (a < b);
     return 0;
 }
@@ -178,14 +205,18 @@ map<int, inst_r_t> R_funct = {
     {0x23, sub}, // SUBU TODO: HANDLE OVERFLOW TRAP
     {0x24, and_},
     {0x25, or_},
-    {0x2A, slt}
+    {0x26, xor_},
+    {0x27, nor},
+    {0x2A, slt},
+    {0x2B, sltu}
 };
 
 // I-INSTRUCTION MAP
 map<int, inst_i_t> I_opcodes = {
     {0x08, addi},
     {0x09, addiu},
-    {0x0B, slti},
+    {0x0A, slti},
+    {0x0B, sltiu},
     {0x0C, andi},
     {0x0D, ori}
 };
