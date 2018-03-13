@@ -1,0 +1,26 @@
+Some notes...
+
+In order to emulate the CPU, we have devised a small fictious OS.
+ 
+
+EXECUTABLE FILE
+
+- Header (8 bytes):
+    4B : data-segment size (in Bytes)
+    4B : text-segment size (in bytes)
+
+- Data Segment (<data-segment size>):
+    Addresses start at 0x10000000
+
+- Text Segment (<data-segment size>):
+    Addresses start at 0x400000
+
+
+
+ADDITIONALLY (not part of the executable of course),
+
+Heap memory starts at 0x10010000
+
+Stack memory ends at 0x7FFFFFFC
+
+WE PROVIDE SOME SYSCALLS (see attached .pdf)

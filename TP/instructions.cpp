@@ -26,6 +26,10 @@ int x(int32_t rs, int32_t rt, int32_t rd, int32_t shamt)
 #define DECL_I_INSTR(x) \
 int x(int32_t rs, int32_t rt, int32_t imm)
 
+#define DECL_J_INSTR(x) \
+int x(int32_t addr)
+
+
 // INSTRUCTIONS
 DECL_R_INSTR(add){
     int32_t a = R[rs];
@@ -115,8 +119,9 @@ DECL_R_INSTR(sra){
     return 0;
 }
 
-DECL_R_INSTR(jr){ // TODO: FIND OUT HOW TO HANDLE MEMORY ADDRESSES
-    return -1;
+DECL_R_INSTR(jr){
+    PC = R[rs];
+    return 0;
 }
 
 DECL_R_INSTR(and_){ // and is a reserved C++ keyword
@@ -186,6 +191,20 @@ DECL_I_INSTR(ori){ // zero-extending (MIPS convention)
     return 0;
 }
 
+DECL_J_INSTR(j){
+    addr <<= 2;
+    addr |= (PC + 4) & 0xF0000000;
+    PC = addr;
+    return 0;
+}
+
+DECL_J_INSTR(jal){
+    R[REG_RA] = PC + 4;
+    addr <<= 2;
+    addr |= (PC + 4) & 0xF0000000;
+    PC = addr;
+    return 0;
+}
 
 // R-INSTRUCTION MAP
 map<int, inst_r_t> R_funct = {
@@ -221,12 +240,18 @@ map<int, inst_i_t> I_opcodes = {
     {0x0D, ori}
 };
 
+// J-INSTRUCTION MAP
+map<int, inst_j_t> J_opcodes = {
+    {0x02, j},
+    {0x03, jal}
+};
+
 
 // DECODE FUNCTION
 int decode(instruction i){
     unsigned oc = OPCODE(i);
     if( oc == 0x00 ){
-        // r type instruction
+        // R type instruction
         int32_t rs = RS(i);
         int32_t rt = RT(i);
         int32_t rd = RD(i);
@@ -241,14 +266,21 @@ int decode(instruction i){
             return -2;
         }
     }
-    auto operation = I_opcodes[oc];
-    if( operation ){
+    
+    if( auto operation = I_opcodes[oc] ){
+        // I type instruction
         int32_t rs = RS(i);
         int32_t rt = RT(i);
         int32_t imm = IMM(i);
         return operation(rs, rt, imm);
-    }else
-        // not implemented
-        printf("opcode %u not found\n", oc);
-        return -1;
+    }
+    
+    if( auto operation = J_opcodes[oc] ){
+        // J type instruction
+        int32_t addr = ADDR(i);
+        return operation(addr);        
+    }
+    // not implemented
+    printf("opcode %u not found\n", oc);
+    return -1;
 }

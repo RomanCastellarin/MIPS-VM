@@ -52,5 +52,10 @@ int main(){
     R[REG_V1] = 3;
     status = decode(0x0043001A); // div $v0,$v1
     printf("%d %d (status %d)\n",HI,LO,status );
+
+    PC = 0xB0000000;
+    status = decode(0x0C000011); // jal 17 (i.e. to address 0xB0000044)
+    printf("%x %x (status %d)\n",PC, R[REG_RA],status );
+    
     return 0;
 }
