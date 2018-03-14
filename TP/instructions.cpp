@@ -161,6 +161,56 @@ DECL_I_INSTR(addi){
     return 0;
 }
 
+DECL_I_INSTR(beq){
+    if( R[rs] == R[rt] ){
+        PC = PC + SIGN_IMM(imm) * 4;
+        return 1; // TODO: standarize, maybe make "1" mean not to advance the PC
+    }
+    return 0;
+}
+
+DECL_I_INSTR(bne){
+    if( R[rs] == R[rt] ){
+        PC = PC + SIGN_IMM(imm) * 4;
+        return 1; // TODO: standarize, see "beq" instruction
+    }
+    return 0;
+}
+
+DECL_I_INSTR(bltz_bgez){
+    if( R[rt] == 0 ){
+        if( (int32_t) R[rs] < 0 ){
+            PC = PC + SIGN_IMM(imm) * 4;
+            return 1; // TODO: standarize, see "beq" instruction
+        }
+        return 0;
+    }
+    if( R[rt] == 1 ){
+        if( (int32_t) R[rs] >= 0 ){
+            PC = PC + SIGN_IMM(imm) * 4;
+            return 1; // TODO: standarize, see "beq" instruction
+        }
+        return 0;
+    }
+    return -1;
+}
+
+DECL_I_INSTR(blez){
+    if( (int32_t) R[rs] <= 0 ){
+        PC = PC + SIGN_IMM(imm) * 4;
+        return 1; // TODO: standarize, see "beq" instruction
+    }
+    return 0;
+}
+
+DECL_I_INSTR(bgtz){
+    if( (int32_t) R[rs] > 0 ){
+        PC = PC + SIGN_IMM(imm) * 4;
+        return 1; // TODO: standarize, see "beq" instruction
+    }
+    return 0;
+}
+
 DECL_I_INSTR(addiu){
     int32_t a = R[rs];
     R[rt] = a + imm;
@@ -232,6 +282,11 @@ map<int, inst_r_t> R_funct = {
 
 // I-INSTRUCTION MAP
 map<int, inst_i_t> I_opcodes = {
+    {0x01, bltz_bgez},
+    {0x04, beq},
+    {0x05, bne},
+    {0x06, blez},
+    {0x07, bgtz},
     {0x08, addi},
     {0x09, addiu},
     {0x0A, slti},
