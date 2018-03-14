@@ -11,8 +11,8 @@
 	#define T_ASCIIZ_DIRECTIVE 120
 
 	#define T_REG 107
-	#define T_ADD 108
-	#define T_SUB 109
+	#define R_ADD 108
+	#define R_SUB 109
 	#define T_LOAD_WORD 110
 	#define T_LOAD_IMMEDIATE 111
 	#define T_STORE_WORD 112
@@ -22,12 +22,12 @@
 	#define COLON 115
 	#define COMMA 116
 	#define WS 117
-    
+
     #define LABEL 118
     #define STRING 119
 
     #define T_COMMENT 121
-    
+
 	int value;
 	char value1[15];
 %}
@@ -43,7 +43,7 @@ label   {id}:
 
 "#".*       { strcpy(value1, yytext); return T_COMMENT; }
 
-{string}    { strcpy(value1, yytext); return STRING; } 
+{string}    { strcpy(value1, yytext); return STRING; }
 
 ".data"		{ return T_DATA_DIRECTIVE;}
 ".byte"		{ return T_BYTE_DIRECTIVE;}
@@ -93,8 +93,10 @@ label   {id}:
 "$fp"		{ value = 30; return T_REG;}
 "$ra"		{ value = 31; return T_REG;}
 
-"add"		{ return T_ADD;}
-"sub"		{ return T_SUB;}
+"add"		{ return R_ADD;}
+"sub"		{ return R_SUB;}
+
+
 "li"		{ return T_LOAD_IMMEDIATE;}
 "lw"		{ return T_LOAD_WORD;}
 "sw"		{ return T_STORE_WORD;}
@@ -133,14 +135,14 @@ int main()
 			case T_GLOBL_DIRECTIVE: printf("token = %d : T_GLOBL_DIRECTIVE\n", T_GLOBL_DIRECTIVE); break;
 			case T_ASCIIZ_DIRECTIVE: printf("token = %d : T_ASCIIZ_DIRECTIVE\n", T_ASCIIZ_DIRECTIVE); break;
 			case T_END_DIRECTIVE: printf("token = %d : T_END_DIRECTIVE\n", T_END_DIRECTIVE); break;
-			case T_ADD: printf("token = %d : T_ADD\n", T_ADD); break;
-			case T_SUB: printf("token = %d : T_SUB\n", T_SUB); break;
+			case R_ADD: printf("token = %d : R_ADD\n", R_ADD); break;
+			case R_SUB: printf("token = %d : R_SUB\n", R_SUB); break;
 			case T_LOAD_WORD: printf("token = %d : T_LOAD_WORD\n", T_LOAD_WORD); break;
 			case T_LOAD_IMMEDIATE: printf("token = %d : T_LOAD_IMMEDIATE\n", T_LOAD_IMMEDIATE); break;
 			case T_STORE_WORD: printf("token = %d : T_STORE_WORD\n", T_STORE_WORD); break;
 			case COLON: printf("token = %d : T_COLON\n", COLON); break;
 			case COMMA: printf("token = %d : T_COMMA\n", COMMA); break;
-			
+
 			case T_REG: printf("token = %d : T_REG : reg_no = %d\n", T_REG, value); break;
 			case T_ID: printf("token = %d : T_ID : %s\n", T_REG, value1); break;
 			case T_INT_NUM: printf("token = %d : T_INT_NUM : %s\n", T_REG, value1); break;
