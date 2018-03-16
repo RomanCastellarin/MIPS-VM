@@ -66,6 +66,18 @@ int main(){
     //decode(0x014B4820);
     //decode(0x02531022);
 
+    //~ char s[10];
+    //~ int maxl = 5;
+
+    //~ char format[16];
+    //~ char *arg = s;
+    //~ int32_t maxlen = maxl;
+    //~ snprintf(format, sizeof(format), "%%%u[^\\n]", maxlen);
+    //~ printf("-%s-", format);
+    //~ scanf(format, arg);
+    //~ puts(arg);
+
+
     int x = -9;
     uint32_t y = TO_NBIT(x, 6);
     int z = TO_INT(y, 6);

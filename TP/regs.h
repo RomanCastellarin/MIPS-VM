@@ -7,8 +7,11 @@
 // register type
 typedef uint32_t reg_t;
 
-// number of registers
+// number of general purpose registers
 const int R_SIZE = 32;
+
+// number of floating-point registers
+const int F_SIZE = 32;
 
 // general purpose registers
 extern reg_t R[R_SIZE];
@@ -16,7 +19,16 @@ extern reg_t R[R_SIZE];
 // un-numbered registers
 extern reg_t HI, LO, PC;
 
-// floating-point registers ?
+// floating-point registers
+extern reg_t F[F_SIZE];
+
+// float types
+typedef float  float32_t;
+typedef double float64_t;
+
+// helpers
+#define AS_FLOAT(x)  reinterpret_cast<float32_t&>(x)
+#define AS_DOUBLE(x) reinterpret_cast<float64_t&>(x)
 
 // names
 enum {

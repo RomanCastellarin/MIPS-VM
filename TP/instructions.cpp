@@ -29,6 +29,7 @@ int x(int32_t rs, int32_t rt, int32_t imm)
 #define DECL_J_INSTR(x) \
 int x(int32_t addr)
 
+// TODO: add floating-point variants
 
 // INSTRUCTIONS
 DECL_R_INSTR(add){

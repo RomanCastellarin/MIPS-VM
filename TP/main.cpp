@@ -6,6 +6,7 @@ using namespace std;
 
 
 int main(){
+
     // pseudo testing syscalls and registers
 
     R[REG_V0] = 1;
@@ -16,6 +17,35 @@ int main(){
     R[REG_V0] = 11;
     R[REG_A0] = 65;
     syscall();
+    puts("");
+
+    R[REG_V0] = 2;
+    AS_FLOAT(F[12]) = -7.3;
+    syscall();
+    printf("\n$f12 = %x\n", F[12]); 
+    printf("$f13 = %x\n", F[13]); 
+    puts("");
+
+    R[REG_V0] = 3;
+    AS_DOUBLE(F[12]) = -7.3;
+    syscall();
+    printf("\n$f12 = %x\n", F[12]); 
+    printf("$f13 = %x\n", F[13]); 
+    printf("as double = 0x%x%x\n", F[13], F[12]); 
+    puts("");
+
+    R[REG_V0] = SC_READ_DOUBLE;
+    printf("Enter a double "); fflush(stdout);
+    syscall();
+    printf("\n$f0 = %x\n", F[0]); 
+    printf("$f1 = %x\n", F[1]); 
+    printf("as double = 0x%x%x\n", F[1], F[0]); 
+    puts("");
+
+    R[REG_V0] = SC_READ_INTEGER;
+    printf("Enter an int "); fflush(stdout);
+    syscall();
+    printf("\n$v0 = %d = %x\n", R[REG_V0], R[REG_V0]); 
     puts("");
 
     // pseudo testing R instructions
