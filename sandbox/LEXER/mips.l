@@ -1,35 +1,5 @@
 %{
-	#include <stdio.h>
-
-	#define T_DATA_DIRECTIVE 100
-	#define T_BYTE_DIRECTIVE 101
-	#define T_HALF_DIRECTIVE 102
-	#define T_WORD_DIRECTIVE 103
-	#define T_TEXT_DIRECTIVE 104
-	#define T_GLOBL_DIRECTIVE 105
-	#define T_END_DIRECTIVE 106
-	#define T_ASCIIZ_DIRECTIVE 120
-
-	#define T_REG 107
-	#define R_ADD 108
-	#define R_SUB 109
-	#define T_LOAD_WORD 110
-	#define T_LOAD_IMMEDIATE 111
-	#define T_STORE_WORD 112
-	#define T_ID 113
-	#define T_INT_NUM 114
-
-	#define COLON 115
-	#define COMMA 116
-	#define WS 117
-
-    #define LABEL 118
-    #define STRING 119
-
-    #define T_COMMENT 121
-
-	int value;
-	char value1[15];
+    #include    "lex.h"
 %}
 
 id 		[a-zA-Z][a-zA-Z0-9]*
@@ -93,16 +63,25 @@ label   {id}:
 "$fp"		{ value = 30; return T_REG;}
 "$ra"		{ value = 31; return T_REG;}
 
-"add"		{ return R_ADD;}
-"sub"		{ return R_SUB;}
+"add"		{ opcode = 0; funct = 32; return R_INS_3;}
+"addu"		{ opcode = 0; funct = 33; return R_INS_3;}
+"sub"		{ opcode = 0; funct = 34; return R_INS_3;}
+"subu"		{ opcode = 0; funct = 35; return R_INS_3;}
+"and"		{ opcode = 0; funct = 36; return R_INS_3;}
+"or"		{ opcode = 0; funct = 37; return R_INS_3;}
+"xor"		{ opcode = 0; funct = 38; return R_INS_3;}
+"nor"		{ opcode = 0; funct = 39; return R_INS_3;}
+"slt"		{ opcode = 0; funct = 42; return R_INS_3;}
+"sltu"		{ opcode = 0; funct = 43; return R_INS_3;}
+
 
 
 "li"		{ return T_LOAD_IMMEDIATE;}
 "lw"		{ return T_LOAD_WORD;}
 "sw"		{ return T_STORE_WORD;}
-":"		{ return COLON;}
-","		{ return COMMA;}
-{ws}		{ return WS;}
+":"         { return COLON;}
+","         ;
+{ws}        ;
 
 
 {label}     { yytext[strlen(yytext)-1] = 0; strcpy(value1, yytext); return LABEL; }
@@ -115,37 +94,4 @@ label   {id}:
 int yywrap()
 {
 	return 1;
-}
-
-int main()
-{
-	int tok;
-	while((tok = yylex()) != EOF)
-	{
-		switch(tok)
-		{
-            case T_COMMENT: printf("token = %d : Comment %s\n", T_COMMENT, value1); break;
-            case STRING: printf("token = %d : String %s\n", STRING, value1); break;
-            case LABEL: printf("token = %d : Label \"%s\"\n", LABEL, value1); break;
-			case T_DATA_DIRECTIVE: printf("token = %d : T_DATA_DIRECTIVE\n", T_DATA_DIRECTIVE); break;
-			case T_BYTE_DIRECTIVE: printf("token = %d : T_BYTE_DIRECTIVE\n", T_BYTE_DIRECTIVE); break;
-			case T_HALF_DIRECTIVE: printf("token = %d : T_HALF_DIRECTIVE\n", T_HALF_DIRECTIVE); break;
-			case T_WORD_DIRECTIVE: printf("token = %d : T_WORD_DIRECTIVE\n", T_WORD_DIRECTIVE); break;
-			case T_TEXT_DIRECTIVE: printf("token = %d : T_TEXT_DIRECTIVE\n", T_TEXT_DIRECTIVE); break;
-			case T_GLOBL_DIRECTIVE: printf("token = %d : T_GLOBL_DIRECTIVE\n", T_GLOBL_DIRECTIVE); break;
-			case T_ASCIIZ_DIRECTIVE: printf("token = %d : T_ASCIIZ_DIRECTIVE\n", T_ASCIIZ_DIRECTIVE); break;
-			case T_END_DIRECTIVE: printf("token = %d : T_END_DIRECTIVE\n", T_END_DIRECTIVE); break;
-			case R_ADD: printf("token = %d : R_ADD\n", R_ADD); break;
-			case R_SUB: printf("token = %d : R_SUB\n", R_SUB); break;
-			case T_LOAD_WORD: printf("token = %d : T_LOAD_WORD\n", T_LOAD_WORD); break;
-			case T_LOAD_IMMEDIATE: printf("token = %d : T_LOAD_IMMEDIATE\n", T_LOAD_IMMEDIATE); break;
-			case T_STORE_WORD: printf("token = %d : T_STORE_WORD\n", T_STORE_WORD); break;
-			case COLON: printf("token = %d : T_COLON\n", COLON); break;
-			case COMMA: printf("token = %d : T_COMMA\n", COMMA); break;
-
-			case T_REG: printf("token = %d : T_REG : reg_no = %d\n", T_REG, value); break;
-			case T_ID: printf("token = %d : T_ID : %s\n", T_REG, value1); break;
-			case T_INT_NUM: printf("token = %d : T_INT_NUM : %s\n", T_REG, value1); break;
-		}
-	}
 }
