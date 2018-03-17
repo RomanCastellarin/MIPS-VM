@@ -24,6 +24,9 @@
 #define R_INS_2 123
 #define R_INS_3 124
 
+#define I_INS_1 125
+#define I_INS_2 126
+
 
 int opcode,funct,value;
 char value1[15];

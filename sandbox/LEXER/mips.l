@@ -73,6 +73,22 @@ label   {id}:
 "nor"		{ opcode = 0; funct = 39; return R_INS_3;}
 "slt"		{ opcode = 0; funct = 42; return R_INS_3;}
 "sltu"		{ opcode = 0; funct = 43; return R_INS_3;}
+"sllv"      { opcode = 0; funct = 4; return R_INS_3;}
+"srlv"      { opcode = 0; funct = 6; return R_INS_3;}
+"srav"      { opcode = 0; funct = 7; return R_INS_3;}
+
+"addi"      { opcode = 8; return R_INS_2;}
+"addiu"     { opcode = 9; return R_INS_2;}
+"slti"      { opcode = 10; return R_INS_2;}
+"sltiu"     { opcode = 11; return R_INS_2;}
+"andi"      { opcode = 12; return R_INS_2;}
+"ori"       { opcode = 14; return R_INS_2;}
+"xori"      { opcode = 13; return R_INS_2;}
+"lui"       { opcode = 15; return R_INS_2;}
+
+"sll"       { opcode = 0; funct = 0; return R_INS_1;}
+"srl"       { opcode = 0; funct = 2; return R_INS_1;}
+"sra"       { opcode = 0; funct = 3; return R_INS_1;}
 
 
 

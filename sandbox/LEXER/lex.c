@@ -1,13 +1,17 @@
 #include    "lex.h"
 #include    <stdio.h>
 #include    <stdlib.h>
-#define     B_R_3(op,rd,rs,rt,funct)  (((op)<<26) + ((rs)<<21) + ((rt)<<16) + ((rd)<<11) + (funct))
+#define     OP(x)   ((x)<<26)
+#define     RS(x)   ((x)<<21)
+#define     RT(x)   ((x)<<16)
+#define     RD(x)   ((x)<<11)
+#define     SH(x)   ((x)<<6)
 extern yylex();
 
-int f_r3(int tok)
+int32_t f_r3()
 {
-    int tok1,tok2,tok3;
-    int rs,rd,rt;
+    int32_t tok1,tok2,tok3;
+    int32_t rs,rd,rt;
     tok1 = yylex();
     rd = value;
     tok2 = yylex();
@@ -15,19 +19,52 @@ int f_r3(int tok)
     tok3 = yylex();
     rt = value;
     if(tok1 == tok2 && tok2 == tok3 )
-        return B_R_3(opcode,rd,rs,rt,funct);
+        return (OP(opcode) + RS(rs) + RT(rt) + RD(rd) + (funct));
+    exit(-1);
+}
+int32_t f_i2()
+{
+    int32_t tok1,tok2,tok3;
+    int32_t rs,rt;
+    int32_t imm;
+    tok1 = yylex();
+    rt = value;
+    tok2 = yylex();
+    rs = value;
+    tok3 = yylex();
+    imm = 0xFFFF & atoi(value1);
+    if(tok1 == T_REG && tok2 == T_REG  && tok3 == T_INT_NUM )
+        return OP(opcode) + RS(rs) + RT(rt) + (imm);
+    exit(-1);
+}
+int32_t f_i1()
+{
+    int32_t tok1,tok2,tok3;
+    int32_t rs,rt;
+    int32_t shamt;
+    tok1 = yylex();
+    rt = value;
+    tok2 = yylex();
+    rs = value;
+    tok3 = yylex();
+    shamt = 0x3F & atoi(value1);
+    if(tok1 == T_REG && tok2 == T_REG  && tok3 == T_INT_NUM)
+        return OP(opcode) + RT(rs) + RD(rt) + SH(shamt) + (funct);
     exit(-1);
 }
 
 
 
 
+
 int main()
 {
-	int tok;
-	while((tok = yylex()) != EOF){
+	int32_t tok;
+	while( tok = yylex() ){
 	    switch(tok){
-            case R_INS_3:  printf("%04X\n",f_r3(tok) );   break;
+            case R_INS_3:   printf("%04X\n",f_r3() );    break;
+            case R_INS_2:   printf("%04X\n",f_i2() );    break;
+            case R_INS_1:   printf("%04X\n",f_i1() );    break;
             case T_COMMENT: printf("token = %d : Comment %s\n", T_COMMENT, value1); break;
             case STRING: printf("token = %d : String %s\n", STRING, value1); break;
             case LABEL: printf("token = %d : Label \"%s\"\n", LABEL, value1); break;
