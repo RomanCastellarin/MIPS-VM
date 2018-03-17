@@ -3,12 +3,13 @@
 #include "memory.h"
 
 #include <cstdio>
+#include <cstdlib>
 
 // TODO: should we perform an fflush(stdout) after every print?
 
 // handle syscalls
 int syscall(){
-    
+
     switch( R[REG_V0] ){
         case SC_PRINT_INTEGER:{
             int32_t arg = R[REG_A0];
@@ -59,6 +60,8 @@ int syscall(){
         }
         case SC_EXIT:{
             // TODO: Investigate how to return nicely
+            puts("BYE"); fflush(stdout); // TODO: remove
+            exit(0);
             break;
         }
         case SC_PRINT_CHAR:{

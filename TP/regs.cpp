@@ -18,5 +18,5 @@ constexpr bool check(){
             std::numeric_limits<double>::is_iec559;
 }
 
-static_assert( check(), "Need be IEEE754 compliant");
+static_assert( check(), "Need be IEEE754 compliant" );
 

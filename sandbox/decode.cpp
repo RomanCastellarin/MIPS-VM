@@ -63,6 +63,25 @@ void pb(uint64_t n){
 
 
 int main(){
+
+    FILE *out = fopen("test1.mips", "wb");
+
+    // HARDCODED, MAY NOT BE EQUAL TO PARSER GENERATED CODE
+    uint32_t header[] = { 20, 88 };
+    char* data_s[] = { "Enter a number\0\0", "i=\0\0" }; // notice 4-alignment
+    int data_ss[] = { 16, 4 };
+    uint32_t text_s[] = { 0x34020004, 0x3C041000, 0xC, 0x34020005, 0xC,
+        0x28025, 0x34080000, 0x1110000D, 0x34020004, 0x3C011000, 0x34240010, 0xC,
+        0x34020001, 0x82025, 0xC, 0x3402000B, 0x3404000A, 0xC, 0x21080001,
+        0x8000008, 0x3402000A, 0xC };
+
+    fwrite(header, sizeof(header), 1, out);
+    for(int i = 0; i < 2; ++i)
+        fwrite(data_s[i], data_ss[i], 1, out);
+    fwrite(text_s, sizeof(text_s), 1, out);
+
+    fclose(out);
+    
     //decode(0x014B4820);
     //decode(0x02531022);
 

@@ -1,19 +1,39 @@
 #include "files.h"
+#include "memory.h"
+#include "instructions.h"
+#include "simulator.h"
+#include <cstdio>
 
-/**
-TODO: implement the following algorithm
 
-int load_program(filename){
-    f = fopen(filename, binarily)
+int load_program(const char *filename){
+    FILE *f = fopen(filename, "rb");
 
-    data_size = read( f, 4 bytes )
-    text_size = read( f, 4 bytes )
+    if( !f ){
+        fprintf(stderr, "Cannot open file\n");
+        return -1; // TODO: standarize
+    }
 
-    data_segment = read( f, data_size bytes )
-    text_segment = read( f, text_size bytes )
+    fread(&DATA_SIZE, sizeof(DATA_SIZE), 1, f);
+    fread(&TEXT_SIZE, sizeof(TEXT_SIZE), 1, f);
 
-    set segment pointers so as to load both segments into real memory
+    // TODO: check size limits
+
+    DATA_POINTER = new uint8_t[DATA_SIZE]; // TODO: is this safe ? probably not
+    TEXT_POINTER = new uint8_t[TEXT_SIZE];
+
+    if( !DATA_POINTER or !TEXT_POINTER ){
+        fprintf(stderr, "Cannot handle this size\n");
+        return -1; // TODO: standarize
+    }
+
+    fread(DATA_POINTER, DATA_SIZE, 1, f);
+    fread(TEXT_POINTER, TEXT_SIZE, 1, f);
+
+    fclose(f);
+
+    initialize();
+
+    return 0;
     
-    initialize simulator/OS values (which?) need to be initialized
 }
-*/
+

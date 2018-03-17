@@ -1,11 +1,26 @@
+#include "simulator.h"
 #include "regs.h"
 #include "syscalls.h"
 #include "instructions.h"
+#include "files.h"
 #include <cstdio>
 using namespace std;
 
 
 int main(){
+
+    load_program("test1.mips");
+
+    while(true){
+        int s = step();
+        if( s == -1 ){
+            puts("oh no");
+            return -1;
+        }
+        // getchar(); // step by step
+    }
+    
+    return 0;
 
     // pseudo testing syscalls and registers
 

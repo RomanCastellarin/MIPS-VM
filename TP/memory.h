@@ -19,6 +19,14 @@ addr_t data_break(int32_t);
 // resolve virtual address to "real"
 void* resolve_addr(addr_t addr);
 
+// Parameters
+extern uint32_t DATA_SIZE;
+extern uint32_t TEXT_SIZE;
+
+// Memory Pointers
+extern uint8_t *DATA_POINTER;
+extern uint8_t *TEXT_POINTER;
+
 // read from main memory
 //int memory_read(addr_t);
 

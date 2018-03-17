@@ -2,6 +2,7 @@
 #ifndef FILES_H
 #define FILES_H
 
-// TODO: develop a module for file handling
+// loads a compiled program and initializes the VM
+int load_program(const char *filename);
 
 #endif

@@ -1,5 +1,6 @@
 #include "instructions.h"
 #include "regs.h"
+#include "syscalls.h"
 #include <map>
 #include <cstdio>
 using namespace std;
@@ -242,11 +243,16 @@ DECL_I_INSTR(ori){ // zero-extending (MIPS convention)
     return 0;
 }
 
+DECL_I_INSTR(lui){
+    R[rt] = imm << 16;
+    return 0;
+}
+
 DECL_J_INSTR(j){
     addr <<= 2;
     addr |= (PC + 4) & 0xF0000000;
     PC = addr;
-    return 0;
+    return 1; // TODO: standarize, maybe make "1" mean not to advance the PC
 }
 
 DECL_J_INSTR(jal){
@@ -254,7 +260,7 @@ DECL_J_INSTR(jal){
     addr <<= 2;
     addr |= (PC + 4) & 0xF0000000;
     PC = addr;
-    return 0;
+    return 1; // TODO: standarize, maybe make "1" mean not to advance the PC
 }
 
 // R-INSTRUCTION MAP
@@ -293,7 +299,8 @@ map<int, inst_i_t> I_opcodes = {
     {0x0A, slti},
     {0x0B, sltiu},
     {0x0C, andi},
-    {0x0D, ori}
+    {0x0D, ori},
+    {0x0F, lui}
 };
 
 // J-INSTRUCTION MAP
@@ -305,6 +312,10 @@ map<int, inst_j_t> J_opcodes = {
 
 // DECODE FUNCTION
 int decode(instruction i){
+    if( i == 0xC ){
+        syscall();
+        return 0;
+    }
     unsigned oc = OPCODE(i);
     if( oc == 0x00 ){
         // R type instruction

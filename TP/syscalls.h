@@ -17,7 +17,8 @@ enum {
     SC_READ_STRING      = 8,
     SC_MALLOC           = 9,
     SC_EXIT             = 10,
-    SC_PRINT_CHAR       = 11
+    SC_PRINT_CHAR       = 11,
+    SC_READ_CHAR        = 12
     // maybe add more?
 };
 
