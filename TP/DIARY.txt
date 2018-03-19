@@ -7,3 +7,6 @@ earlier this week:
 
 15/03:
 	We add support for floating point types, we struggle trying to find a way to check during compilation time that the machine is compliant with IEEE754 standards.
+
+18-19/03:
+    Stack and Heap successfully virtualized!

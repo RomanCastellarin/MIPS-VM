@@ -7,15 +7,22 @@
 int initialize(){
     // TODO: complete
     PC = TEXT_START;
+    R[REG_SP] = STACK_START;
     return 0;
 }
 
 int reset(){
     // TODO: complete
-    if( DATA_POINTER ) delete[] DATA_POINTER;
-    if( TEXT_POINTER ) delete[] TEXT_POINTER;
+    delete[] DATA_POINTER;  DATA_POINTER  = nullptr;
+    delete[] TEXT_POINTER;  TEXT_POINTER  = nullptr;
+    delete[] STACK_POINTER; STACK_POINTER = nullptr;
+    
     DATA_SIZE = 0;
     TEXT_SIZE = 0;
+    STACK_SIZE = 0;
+
+    Heap.clear();
+    
     return 0;
 }
 
@@ -33,5 +40,15 @@ int step(){
         // TODO: ? 
     }else
         PC += 4; // TODO: standarize, advance(4);
+
+    /// TODO: ENSURE
+        /// ZERO IS ZERO
+        /// STACK SIZE
+        // what else?
+
+    R[REG_ZERO] = 0;
+    if( R[REG_SP] > STACK_START ) return -2; // TODO: standarize: what to do?
+    ensure_stack_size( STACK_SIZE - R[REG_SP] );
+    
     return 0;
 }

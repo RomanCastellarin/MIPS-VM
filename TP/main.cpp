@@ -3,11 +3,62 @@
 #include "syscalls.h"
 #include "instructions.h"
 #include "files.h"
+#include "memory.h"
 #include <cstdio>
 using namespace std;
 
+#include <cstring>
 
 int main(){
+
+
+    // test malloc
+    
+    initialize();
+
+    R[REG_V0] = 9;
+    R[REG_A0] = 5; // allocate 5 bytes
+    syscall();
+    char *addr1 = (char *) resolve_addr(R[REG_V0]);
+    memcpy(addr1, "HELLO", 5);
+    printf("addr1 = 0x%X\n", addr1);
+
+    R[REG_V0] = 9;
+    R[REG_A0] = 5; // allocate 6 bytes
+    syscall();
+    char *addr2 = (char *) resolve_addr(R[REG_V0]);
+    memcpy(addr2, " WORLD\0", 7);
+    printf("addr2 = 0x%X\n", addr2);
+
+    addr1 = (char *) resolve_addr(HEAP_START);
+    printf("addr1 = 0x%X %s\n", addr1, addr1);
+
+    return 0;
+
+    // test stack
+    
+    initialize();
+
+    void *p = resolve_addr(R[REG_SP]);
+    printf("0x%X\n", p);
+
+    R[REG_SP] -= 12; // space for 3 words;
+    ensure_stack_size( STACK_START - R[REG_SP] );
+    printf("stack size %u\n", STACK_SIZE);
+    
+    p = resolve_addr(R[REG_SP]);
+    printf("0x%X\n", p);
+    strcpy((char*)p,"HELLO WORLD");
+
+    ensure_stack_size( 20 );
+    printf("stack size %u\n", STACK_SIZE);
+    p = resolve_addr(R[REG_SP]);
+    printf("0x%X %s\n", p, p);
+
+
+    return 0;
+
+    // test program
 
     load_program("test1.mips");
 

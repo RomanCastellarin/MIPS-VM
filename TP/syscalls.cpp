@@ -55,7 +55,8 @@ int syscall(){
             break;
         }
         case SC_MALLOC:{
-            // TODO: Complete (depends on the memory module)
+            int32_t arg = R[REG_A0];
+            R[REG_V0] = data_break(arg);
             break;
         }
         case SC_EXIT:{
@@ -67,6 +68,11 @@ int syscall(){
         case SC_PRINT_CHAR:{
             int32_t arg = R[REG_A0]; // int for wide characters
             printf("%c", arg); // TODO: standarize output (virtualize console)
+            break;
+        }
+        case SC_READ_CHAR:{
+            int32_t &val = reinterpret_cast<int32_t&> (R[REG_V0]); // see above
+            val = fgetc(stdin); // TODO: standarize input (virtualize console)
             break;
         }
         default:
