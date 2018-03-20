@@ -2,6 +2,10 @@
 #ifndef REGS_H
 #define REGS_H
 
+/*
+ * This module defines MIPS registers (fixed and floating types)
+ * */
+
 #include <cstdint>
 
 // register type

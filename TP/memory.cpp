@@ -18,6 +18,8 @@ std::vector<uint8_t> Heap;
 
 // change program's break (sbrk)
 addr_t data_break(int32_t delta){
+
+    // calculate heap top
     addr_t heap_top = HEAP_START + Heap.size();
 
     // convention: delta zero returns current heap_top
@@ -26,18 +28,18 @@ addr_t data_break(int32_t delta){
     auto old_top = heap_top;
     auto new_top = heap_top + delta;
 
+    // check if new top is valid
     if( HEAP_START <= new_top and new_top <= R[REG_SP] ){
         Heap.resize(new_top - HEAP_START);
         return old_top;
     }
 
-    return -1;
+    return -1; // this is standard (sbrk) 
 
 }
 
 // resolve virtual address to "real"
 void* resolve_addr(addr_t addr){
-    // TODO: implement stack and heap
 
     // reserved space
     if( addr < TEXT_START or addr >= STACK_START )

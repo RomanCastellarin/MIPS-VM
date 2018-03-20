@@ -312,10 +312,11 @@ map<int, inst_j_t> J_opcodes = {
 
 // DECODE FUNCTION
 int decode(instruction i){
-    if( i == 0xC ){
-        syscall();
-        return 0;
-    }
+
+    // check if it's a syscall
+    if( i == 0xC )
+        return syscall();
+    
     unsigned oc = OPCODE(i);
     if( oc == 0x00 ){
         // R type instruction
@@ -347,6 +348,7 @@ int decode(instruction i){
         int32_t addr = ADDR(i);
         return operation(addr);        
     }
+    
     // not implemented
     printf("opcode %u not found\n", oc);
     return -1;

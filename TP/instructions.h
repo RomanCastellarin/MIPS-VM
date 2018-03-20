@@ -2,6 +2,10 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
+/* 
+ * This module implements all the processor's (and coprocessors') instructions
+ */
+
 #include <cstdint>
 
 // INSTRUCTION TYPE
