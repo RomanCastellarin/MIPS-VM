@@ -4,9 +4,13 @@
 #include "memory.h"
 #include <cstdio>
 
+// initialize simulator (current program stays in memory)
 int initialize(){
     // TODO: complete
+    // 
     PC = TEXT_START;
+
+    
     R[REG_SP] = STACK_START;
     return 0;
 }

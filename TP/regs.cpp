@@ -18,5 +18,6 @@ constexpr bool check(){
             std::numeric_limits<double>::is_iec559;
 }
 
+// check that the floating types representation is correct
 static_assert( check(), "Need be IEEE754 compliant" );
 
