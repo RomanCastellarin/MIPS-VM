@@ -63,38 +63,80 @@ label   {id}:
 "$fp"		{ value = 30; return T_REG;}
 "$ra"		{ value = 31; return T_REG;}
 
-"add"		{ opcode = 0; funct = 32; return R_INS_3;}
-"addu"		{ opcode = 0; funct = 33; return R_INS_3;}
-"sub"		{ opcode = 0; funct = 34; return R_INS_3;}
-"subu"		{ opcode = 0; funct = 35; return R_INS_3;}
-"and"		{ opcode = 0; funct = 36; return R_INS_3;}
-"or"		{ opcode = 0; funct = 37; return R_INS_3;}
-"xor"		{ opcode = 0; funct = 38; return R_INS_3;}
-"nor"		{ opcode = 0; funct = 39; return R_INS_3;}
-"slt"		{ opcode = 0; funct = 42; return R_INS_3;}
-"sltu"		{ opcode = 0; funct = 43; return R_INS_3;}
-"sllv"      { opcode = 0; funct = 4; return R_INS_3;}
-"srlv"      { opcode = 0; funct = 6; return R_INS_3;}
-"srav"      { opcode = 0; funct = 7; return R_INS_3;}
-
-"addi"      { opcode = 8; return R_INS_2;}
-"addiu"     { opcode = 9; return R_INS_2;}
-"slti"      { opcode = 10; return R_INS_2;}
-"sltiu"     { opcode = 11; return R_INS_2;}
-"andi"      { opcode = 12; return R_INS_2;}
-"ori"       { opcode = 14; return R_INS_2;}
-"xori"      { opcode = 13; return R_INS_2;}
-"lui"       { opcode = 15; return R_INS_2;}
-
 "sll"       { opcode = 0; funct = 0; return R_INS_1;}
 "srl"       { opcode = 0; funct = 2; return R_INS_1;}
 "sra"       { opcode = 0; funct = 3; return R_INS_1;}
 
+"sllv"      { opcode = 0; funct = 4; return R_INS_2;}
+"srlv"      { opcode = 0; funct = 6; return R_INS_2;}
+"srav"      { opcode = 0; funct = 7; return R_INS_2;}
+"add"		{ opcode = 0; funct = 32; return R_INS_2;}
+"addu"		{ opcode = 0; funct = 33; return R_INS_2;}
+"sub"		{ opcode = 0; funct = 34; return R_INS_2;}
+"subu"		{ opcode = 0; funct = 35; return R_INS_2;}
+"and"		{ opcode = 0; funct = 36; return R_INS_2;}
+"or"		{ opcode = 0; funct = 37; return R_INS_2;}
+"xor"		{ opcode = 0; funct = 38; return R_INS_2;}
+"nor"		{ opcode = 0; funct = 39; return R_INS_2;}
+"slt"		{ opcode = 0; funct = 42; return R_INS_2;}
+"sltu"		{ opcode = 0; funct = 43; return R_INS_2;}
+
+"jalr"		{ opcode = 0; funct = 9; return R_INS_3;}
+"mult"		{ opcode = 0; funct = 24; return R_INS_3;}
+"multu"		{ opcode = 0; funct = 25; return R_INS_3;}
+"div"		{ opcode = 0; funct = 26; return R_INS_3;}
+"divu"		{ opcode = 0; funct = 27; return R_INS_3;}
+
+"jr"		{ opcode = 0; funct = 8; return R_INS_4;}
+"mfhi"		{ opcode = 0; funct = 16; return R_INS_4;}
+"mthi"		{ opcode = 0; funct = 17; return R_INS_4;}
+"mflo"		{ opcode = 0; funct = 18; return R_INS_4;}
+"mtlo"		{ opcode = 0; funct = 19; return R_INS_4;}
+
+"syscall"	{ opcode = 0; funct = 12; return SYSCALL;}
+
+"beq"     	{ opcode = 4; return I_INS_1;}
+"bne"    	{ opcode = 5; return I_INS_1;}
+"addi"      { opcode = 8; return I_INS_1;}
+"addiu"     { opcode = 9; return I_INS_1;}
+"slti"      { opcode = 10; return I_INS_1;}
+"sltiu"     { opcode = 11; return I_INS_1;}
+"andi"      { opcode = 12; return I_INS_1;}
+"ori"       { opcode = 13; return I_INS_1;}
+"xori"      { opcode = 14; return I_INS_1;}
+
+"blez"      { opcode = 6; return I_INS_2;}
+"bgtz"      { opcode = 7; return I_INS_2;}
+"lui"       { opcode = 15; return I_INS_2;}
+
+"lb"      	{ opcode = 32; return I_INS_3;}
+"lh"      	{ opcode = 33; return I_INS_3;}
+"lw"      	{ opcode = 34; return I_INS_3;}
+"lbu"      	{ opcode = 36; return I_INS_3;}
+"lhu"      	{ opcode = 37; return I_INS_3;}
+"sb"      	{ opcode = 40; return I_INS_3;}
+"sh"      	{ opcode = 41; return I_INS_3;}
+"sw"      	{ opcode = 43; return I_INS_3;}
+
+"j"   	    { opcode = 2; return J_INS_1;}
+"jal"       { opcode = 3; return J_INS_1;}
+
+%{/* Pseudo Instructions */%}
+
+"blt"		{ return INST_BLT;}
+"bgt"		{ return INST_BGT;}
+"ble"		{ return INST_BLE;}
+"neg"		{ return INST_NEG;}
+"not"		{ return INST_NOT;}
+"bge"		{ return INST_BGE;}
+"li"		{ return INST_LI;}
+"la"		{ return INST_LA;}
+"move"		{ return INST_MOVE;}
+"sge"		{ return INST_SGE;}
+"sgt"		{ return INST_SGT;}
 
 
-"li"		{ return T_LOAD_IMMEDIATE;}
-"lw"		{ return T_LOAD_WORD;}
-"sw"		{ return T_STORE_WORD;}
+
 ":"         { return COLON;}
 ","         ;
 {ws}        ;
@@ -111,3 +153,4 @@ int yywrap()
 {
 	return 1;
 }
+

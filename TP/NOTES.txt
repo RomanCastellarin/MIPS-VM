@@ -12,7 +12,7 @@ EXECUTABLE FILE
 - Data Segment (<data-segment size>):
     Addresses start at 0x10000000
 
-- Text Segment (<data-segment size>):
+- Text Segment (<text-segment size>):
     Addresses start at 0x400000
 
 
