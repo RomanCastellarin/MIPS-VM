@@ -13,7 +13,7 @@ label   {id}:
 
 "#".*       { strcpy(value1, yytext); return T_COMMENT; }
 
-{string}    { strcpy(value1, yytext); return STRING; }
+{string}    { yytext[strlen(yytext)-1] = 0; strcpy(value1, yytext+1); return STRING; }
 
 ".data"		{ return T_DATA_DIRECTIVE;}
 ".byte"		{ return T_BYTE_DIRECTIVE;}
@@ -134,11 +134,14 @@ label   {id}:
 "move"		{ return INST_MOVE;}
 "sge"		{ return INST_SGE;}
 "sgt"		{ return INST_SGT;}
+"nop"		{ return INST_NOP;}
 
 
-
+"("         { return LPAR;}
+")"         { return RPAR;}
 ":"         { return COLON;}
-","         ;
+"+"			{ return PLUS;}
+","         { }
 {ws}        ;
 
 

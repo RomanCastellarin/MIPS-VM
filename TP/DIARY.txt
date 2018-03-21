@@ -10,3 +10,6 @@ earlier this week:
 
 18-19/03:
     Stack and Heap successfully virtualized!
+
+20/03:
+	Modified the executable's header to include the 'main' memory address (where the program starts).

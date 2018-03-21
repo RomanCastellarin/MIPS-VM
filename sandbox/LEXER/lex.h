@@ -1,3 +1,10 @@
+#define PLUS	79
+#define LPAR	80
+#define RPAR	81
+#define COLON	82
+#define COMMA	83
+#define T_COMMENT 84
+
 #define T_DATA_DIRECTIVE 100
 #define T_BYTE_DIRECTIVE 101
 #define T_HALF_DIRECTIVE 102
@@ -5,21 +12,24 @@
 #define T_TEXT_DIRECTIVE 104
 #define T_GLOBL_DIRECTIVE 105
 #define T_END_DIRECTIVE 106
-#define T_REG 107
-#define T_LOAD_WORD 110
-#define T_LOAD_IMMEDIATE 111
-#define T_STORE_WORD 112
-#define T_ID 113
-#define T_INT_NUM 114
+#define T_ASCIIZ_DIRECTIVE 107
 
-#define COLON 115
-#define COMMA 116
+#define T_ID 108
+#define T_INT_NUM 109
+#define T_REG 110
+#define T_CHAR 111
 
-#define LABEL 118
-#define STRING 119
-#define T_ASCIIZ_DIRECTIVE 120
+#define T_2 112		// placeholder
+#define T_3 113		// placeholder
+#define T_4 114		// placeholder
+#define T_5 115		// placeholder
+#define T_6 116		// placeholder
+#define T_7 117		// placeholder
+#define T_8 118		// placeholder
+#define T_9 119		// placeholder
 
-#define T_COMMENT 121
+#define LABEL 120
+#define STRING 121
 
 #define SYSCALL 122
 
@@ -30,9 +40,9 @@
 
 #define I_INS_1 127 	// INSTR T_REG, T_REG, IMM
 #define I_INS_2 128 	// INSTR T_REG, IMM
-#define I_INS_3 129 	// INSTR T_REG, IMM($T_REG)
+#define I_INS_3 129 	// INSTR T_REG, IMM(T_REG)
 							// or  
-							// INSTR T_REG, ADDRESS
+							// INSTR T_REG, T_ID
 
 #define J_INS_1 130		// INSTR ADRESS
 
@@ -49,7 +59,7 @@
 #define INST_MOVE 139
 #define INST_SGE 140
 #define INST_SGT 141
-
+#define INST_NOP 142
 
 int opcode,funct,value;
 char value1[15];
