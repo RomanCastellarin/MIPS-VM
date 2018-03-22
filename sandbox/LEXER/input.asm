@@ -1,9 +1,9 @@
 .data
-a: .word 10 #una palabra
-b: .word 10 #otra
-sum: .word 0
+a: .word 'Z' #una palabra
+b: .word 12 #otra
+sum: .word 1
 
-perrito: .asciiz "hi folks"
+perrito: .asciiz "hi foasdsadsadsadsadasdsadlks"
 pepe: .asciiz "sup boys"
 
 .text

@@ -1,3 +1,4 @@
+#define STRAY	78
 #define PLUS	79
 #define LPAR	80
 #define RPAR	81
@@ -16,10 +17,10 @@
 
 #define T_ID 108
 #define T_INT_NUM 109
-#define T_REG 110
-#define T_CHAR 111
+#define T_HEX_NUM 110
+#define T_REG 111
+#define T_CHAR 112
 
-#define T_2 112		// placeholder
 #define T_3 113		// placeholder
 #define T_4 114		// placeholder
 #define T_5 115		// placeholder
@@ -61,5 +62,5 @@
 #define INST_SGT 141
 #define INST_NOP 142
 
-int opcode,funct,value;
-char value1[15];
+int opcode, funct, value;
+char value1[256];

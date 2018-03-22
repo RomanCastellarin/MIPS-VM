@@ -4,7 +4,6 @@
 #include    <cstring>
 #include    <map>
 
-
 #define     TRUE    1
 #define     FALSE   0
 
@@ -13,12 +12,14 @@
 #define     RT(x)                   ((x)<<16)
 #define     RD(x)                   ((x)<<11)
 #define     SH(x)                   ((x)<<6)
+#define     IMM(x)                  ((x)&0xFFFF)
 
 #define     START_TEXT_SEGMENT      0x00400000
 #define     START_DATA_SEGMENT      0x10000000
 
 extern int32_t  yylex();
 extern void     yyerror(const char*);
+extern void     rformatnum(int32_t*);
 
 int32_t IS_DATA_SEGMENT = TRUE;         /* Tells us whether we are on the data segment or the text segment */
 int32_t IS_GLOBAL_MAIN = FALSE;         /* Tells us if '.global main' has been specified */
@@ -45,10 +46,8 @@ int32_t f_r4(){
 
     tok1 = yylex(); rs = value;
 
-    if( tok1 == T_REG ){
-        PC += 4;
+    if( tok1 == T_REG )
         return (OP(opcode) + RS(rs) + (funct));
-    }
 
     yyerror("");
 }
@@ -60,10 +59,8 @@ int32_t f_r3(){
     tok1 = yylex(); rs = value;
     tok2 = yylex(); rt = value;
 
-    if( tok1 == T_REG && tok2 == T_REG ){
-        PC += 4;
+    if( tok1 == T_REG && tok2 == T_REG )
         return (OP(opcode) + RS(rs) + RT(rt) + (funct));
-    }
 
     yyerror("");
 }
@@ -76,10 +73,8 @@ int32_t f_r2(){
     tok2 = yylex(); rs = value;
     tok3 = yylex(); rt = value;
 
-    if( tok1 == T_REG && tok2 == T_REG && tok3 == T_REG ){
-        PC += 4;
+    if( tok1 == T_REG && tok2 == T_REG && tok3 == T_REG )
         return (OP(opcode) + RS(rs) + RT(rt) + RD(rd) + (funct));
-    }
 
     yyerror("");
 }
@@ -91,12 +86,10 @@ int32_t f_r1(){
 
     tok1 = yylex(); rd = value;
     tok2 = yylex(); rt = value;
-    tok3 = yylex(); shamt = 0x3F & atoi(value1); // Possible check: if value1 is bigger than 0x3F
+    tok3 = yylex(); rformatnum(&shamt);
 
-    if( tok1 == T_REG && tok2 == T_REG && tok3 == T_INT_NUM ){
-        PC += 4;
-        return OP(opcode) + RD(rd) + RT(rt) + SH(shamt) + (funct);
-    }
+    if( tok1 == T_REG && tok2 == T_REG && tok3 == T_HEX_NUM )
+        return OP(opcode) + RD(rd) + RT(rt) + SH(shamt & 0x3F) + (funct);
 
     yyerror("");
 }
@@ -120,14 +113,13 @@ int32_t f_i3(){
         if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
 
         rs = 0x0;
-        imm = 0xFFFF & LABEL_ADDRESS[value1]; // Possible check: if value1 address is bigger than 0xFFFF
+        imm = LABEL_ADDRESS[value1];
 
-        PC += 4;
-        return OP(opcode) + RT(rt) + RS(rs) + (imm);      
+        return OP(opcode) + RT(rt) + RS(rs) + IMM(imm);      
     }
 
-    if( tok2 == T_INT_NUM ){ // INST T_REG, IMM(T_REG)
-        imm = 0xFFFF & atoi(value1); // Possible check: if value1 address is bigger than 0xFFFF 
+    if( tok2 == T_HEX_NUM ){ // INST T_REG, IMM(T_REG)
+        rformatnum(&imm);
 
         tok3 = yylex();
         tok4 = yylex(); rs = value;
@@ -135,27 +127,24 @@ int32_t f_i3(){
 
         if( not (tok3 == LPAR && tok4 == T_REG && tok5 == RPAR) ) yyerror("Syntax error.");
 
-        PC += 4;
-        return OP(opcode) + RT(rt) + RS(rs) + (imm); 
+        return OP(opcode) + RT(rt) + RS(rs) + IMM(imm); 
     }
 
     yyerror("");
 }
 
 int32_t f_i2(){
-    bool using_rt = (value1 == "lui");
+    bool using_rt = (strcmp(value1,"lui") == 0);
 
     int32_t tok1,tok2;
     int32_t reg;
     int32_t imm;
 
     tok1 = yylex(); reg = value;
-    tok2 = yylex(); imm = 0xFFFF & atoi(value1); // Possible check: if value1 is bigger than 0xFFFF
+    tok2 = yylex(); rformatnum(&imm);
 
-    if( tok1 == T_REG && tok2 == T_INT_NUM ){
-        PC += 4;
-        return OP(opcode) + ( using_rt ? RT(reg) : RS(reg) ) + (imm);
-    }
+    if( tok1 == T_REG && tok2 == T_HEX_NUM )
+        return OP(opcode) + ( using_rt ? RT(reg) : RS(reg) ) + IMM(imm);
 
     yyerror("");
 }
@@ -167,12 +156,10 @@ int32_t f_i1(){
 
     tok1 = yylex(); rt = value;
     tok2 = yylex(); rs = value;
-    tok3 = yylex(); imm = 0xFFFF & atoi(value1); // Possible check: if value1 is bigger than 0xFFFF
+    tok3 = yylex(); rformatnum(&imm);
 
-    if( tok1 == T_REG && tok2 == T_REG  && tok3 == T_INT_NUM ){
-        PC += 4;
-        return OP(opcode) + RS(rs) + RT(rt) + (imm);
-    }
+    if( tok1 == T_REG && tok2 == T_REG  && tok3 == T_HEX_NUM )
+        return OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
 
     yyerror("");
 }
@@ -187,77 +174,147 @@ int32_t f_j1(){
     tok1 = yylex();
     if(tok1 == T_ID){ // INST T_ID
         if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
-        addr = 0x3FFFFFF & (LABEL_ADDRESS[value1] >> 2);
-
-        PC += 4;
+        addr = LABEL_ADDRESS[value1] >> 2;
         return OP(opcode) + addr;
     }
 
-    yyerror("");
+    yyerror("Wrong J-Type instruction formatting, make sure to be using INST_J ID.");
 }
 
 
 /* Pseudo-Instructions */
 
-int32_t f_nop(){ PC+=4; return 0x0; }
+void f_nop(){ printf("Write %#010x to text (PC: %#010x)\n", 0x0, PC ); PC+=4; }
+void f_li(){
+    int32_t instruction;
+    int32_t tok1, tok2;
+    int32_t rt, rs, imm;
+
+    tok1 = yylex(); rt = value;
+    tok2 = yylex(); rformatnum(&imm);
+
+    if( tok1 != T_REG or tok2 != T_HEX_NUM ) yyerror("Wrong LI instruction formatting. make sure to be using LI $REG, IMM_VALUE.");
+
+    if( imm >> 16 ){ 
+        // IMM is a 32-bit value
+        // LI T_REG, T_HEX_NUM is gonna be split into two instructions:
+        // LUI T_REG, T_HEX_NUM_hi
+        // ORI T_REG, T_REG, T_HEX_NUM_lo
+
+        opcode = 15; // LUI opcode
+        instruction = OP(opcode) + RT(rt) + IMM(imm>>16);
+        printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+
+        opcode = 13; // ORI opcode
+        rs = rt;
+        instruction = OP(opcode) + RT(rt) + RS(rs) + IMM(imm);
+        printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+
+    } else { 
+        // IMM is a 16-bit value
+        // We can directly use: ADDIU T_REG, $0, T_HEX_NUM
+
+        opcode = 9; // ADDIU opcode
+        rs = 0x0;
+        instruction = OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
+
+        printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+    }
+}
+
+void f_la(){
+    int32_t instruction;
+    int32_t tok1, tok2;
+    int32_t rt, rs;
+
+    tok1 = yylex(); rt = value;
+    tok2 = yylex();
+
+    if( tok1 != T_REG or tok2 != T_ID ) yyerror("Wrong LA instruction formatting. make sure to be using LI $REG, ID.");
+
+    // LA T_REG, T_ID is gonna be split into two instructions:
+    // LUI T_REG, T_ID_hi
+    // ORI T_REG, T_REG, T_ID_lo
+
+    opcode = 15; // LUI opcode
+    instruction = OP(opcode) + RT(rt) + IMM(LABEL_ADDRESS[value1]>>16);
+    printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+
+    opcode = 13; // ORI opcode
+    rs = rt;
+    instruction = OP(opcode) + RT(rt) + RS(rs) + IMM(LABEL_ADDRESS[value1]);
+    printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+}
+
+void f_move(){
+    //TODO
+    PC+=4;
+}
+
+
 // ...
 
 
 /* Utility Functions */
 
-void yyerror(const char *err){ fputs(err, stderr); exit(-1); }    /* Handle the 'err' error and exit the program */ 
+void yyerror(const char *err){ fprintf(stderr, "ERROR: %s\nLINE: %d.\n", err, yylineno); exit(-1); }/* Handle the 'err' error and exit the program */ 
+void rformatnum(int32_t *num){ sscanf(value1, "%i", num); }                                         /* Reads a T_HEX_NUM as 0x... or integer */
 
 /***  ***/
 
 
 
 int main(){
-    int32_t tok, tok1, tok2, tok3;
+    int32_t tok, tok1;
+    int32_t val;
 
     while( tok = yylex() ){
         switch(tok){
             /*** Regular instructions ***/
-            case R_INS_4:   printf("Write %#010x to text (PC: %#010x)\n", f_r4(), PC );    break;
-            case R_INS_3:   printf("Write %#010x to text (PC: %#010x)\n", f_r3(), PC );    break;
-            case R_INS_2:   printf("Write %#010x to text (PC: %#010x)\n", f_r2(), PC );    break;
-            case R_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_r1(), PC );    break;
+            case R_INS_4:   printf("Write %#010x to text (PC: %#010x)\n", f_r4(), PC ); PC+=4; break;
+            case R_INS_3:   printf("Write %#010x to text (PC: %#010x)\n", f_r3(), PC ); PC+=4; break;
+            case R_INS_2:   printf("Write %#010x to text (PC: %#010x)\n", f_r2(), PC ); PC+=4; break;
+            case R_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_r1(), PC ); PC+=4; break;
 
-            case I_INS_3:   printf("Write %#010x to text (PC: %#010x)\n", f_i3(), PC );    break;
-            case I_INS_2:   printf("Write %#010x to text (PC: %#010x)\n", f_i2(), PC );    break;
-            case I_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_i1(), PC );    break;
+            case I_INS_3:   printf("Write %#010x to text (PC: %#010x)\n", f_i3(), PC ); PC+=4; break;
+            case I_INS_2:   printf("Write %#010x to text (PC: %#010x)\n", f_i2(), PC ); PC+=4; break;
+            case I_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_i1(), PC ); PC+=4; break;
 
-            case J_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_j1(), PC );    break;
+            case J_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_j1(), PC ); PC+=4; break;
+
+            case SYSCALL:   printf("Write %#010x to text (PC: %#010x)\n", f_syscall(), PC ); PC+=4; break;
 
 
             /*** Pseudo-instructions ***/
-            case INST_NOP:  printf("Write %#010x to text (PC: %#010x)\n", f_nop(), PC );   break;
+            case INST_NOP:  f_nop();    break;
+            case INST_LI:   f_li();     break;
+            case INST_LA:   f_la();     break;
+            case INST_MOVE: f_move();   break;
             // case ...
 
 
             /*** Directives ***/
             case T_ASCIIZ_DIRECTIVE:    if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != STRING ) yyerror("Asciiz directive should be followed by a string.");
-                                        printf("Write \'%s\' to data (DC: %#010x)\n", value1, DC);
-                                        DC += strlen(value1) + 1;
+                                        printf("Write \'%s\' to data (DC: %#010x)\n", value1, DC); DC += strlen(value1) + 1;
                                         break;
 
             case T_WORD_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
-                                        if( (tok1=yylex()) != T_INT_NUM ) yyerror("Word directive should be followed by an integer.");
-                                        printf("Write %d to data (DC: %#010x)\n", atoi(value1), DC);
-                                        DC += 4;
+                                        if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Word directive should be followed by an integer.");
+                                        rformatnum(&val);
+                                        printf("Write 4 bytes of %#010x to data (DC: %#010x)\n", val, DC); DC += 4;
                                         break;
 
             case T_BYTE_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
-                                        if( (tok1=yylex()) != T_INT_NUM && (tok1=yylex()) != T_CHAR ) yyerror("Byte directive should be followed by an integer or a char.");
-                                        if( tok1 == T_INT_NUM ) printf("Write %d to data (DC: %#010x)\n", atoi(value1), DC);
-                                        else                    printf("Write \'%c\' to data (DC: %#010x)\n", value1[0], DC);
-                                        DC+=1;
+                                        if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Byte directive should be followed by an integer or a char.");
+                                        rformatnum(&val);
+                                        printf("Write 1 byte of %#010x to data (DC: %#010x)\n", val, DC); DC+=1;
                                         break;
 
             case T_HALF_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
-                                        if( (tok1=yylex()) != T_INT_NUM ) yyerror("Half directive should be followed by an integer.");
-                                        printf("Write %d to data (DC: %#010x)\n", atoi(value1), DC);
-                                        DC+=2;
+                                        if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Half directive should be followed by an integer.");
+                                        rformatnum(&val);
+                                        printf("Write 2 bytes of %#010x to data (DC: %#010x)\n", val, DC); DC+=2;
                                         break;
             
             case T_GLOBL_DIRECTIVE:     if((tok1=yylex()) != T_ID) yyerror("Global directive should be followed by an ID.");
@@ -270,14 +327,13 @@ int main(){
                                         // do something ?
                                         break;
 
-            case T_DATA_DIRECTIVE: IS_DATA_SEGMENT = TRUE;  break;
-            case T_TEXT_DIRECTIVE: IS_DATA_SEGMENT = FALSE; break;
+            case T_DATA_DIRECTIVE: printf("\n\n/*** DATA SEGMENT ***/\n\n"); IS_DATA_SEGMENT = TRUE;  break;
+            case T_TEXT_DIRECTIVE: printf("\n\n/*** TEXT SEGMENT ***/\n\n"); IS_DATA_SEGMENT = FALSE; break;
 
 
             /*** Labels ***/
             case LABEL:     if( LABEL_ADDRESS.count(value1) ) yyerror("Label already exists");
-                            LABEL_ADDRESS[value1] = (IS_DATA_SEGMENT ? DC : PC);
-                            printf("Label \'%s\' address: %#010x\n", value1, LABEL_ADDRESS[value1]);   break;
+                            LABEL_ADDRESS[value1] = (IS_DATA_SEGMENT ? DC : PC); break;
 
 
             /*** Bad syntax ***/
@@ -285,8 +341,9 @@ int main(){
             case RPAR:
             case COLON:
             case T_ID:
-            case T_INT_NUM:
+            case T_HEX_NUM:
             case T_REG:
+            case STRAY:
                             yyerror("Syntax error or not supported instructions."); break;
 
 
@@ -303,9 +360,9 @@ int main(){
     TEXT_SEGMENT_SIZE = PC - START_TEXT_SEGMENT;
     START_MAIN_ADDRESS = LABEL_ADDRESS["main"];
 
-    puts("");
-    printf("Data segment size: %d\n", DATA_SEGMENT_SIZE);
-    printf("Text segment size: %d\n", TEXT_SEGMENT_SIZE);
+    printf("\n\n/*** HEADER ***/\n\n");
+    printf("Data segment size: %#010x\n", DATA_SEGMENT_SIZE);
+    printf("Text segment size: %#010x\n", TEXT_SEGMENT_SIZE);
     printf("Main address: %#010x\n", START_MAIN_ADDRESS);
 
     return 0;

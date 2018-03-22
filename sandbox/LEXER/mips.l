@@ -2,14 +2,16 @@
     #include    "lex.h"
 %}
 
-id 		[a-zA-Z][a-zA-Z0-9]*
-number		[0-9]+
-ws		[ \t\n]+
-string  \"[^\n"]+\"
-label   {id}:
+id 			[a-zA-Z][a-zA-Z0-9]*
+char  		(\\['"\?\\abfenrtv])|([a-zA-Z0-9])
+hexnumber 	(0[xX][0-9a-fA-F]+)|([0-9]+)|('{char}')
+ws			[ \t\v\n\f]+
+string  	\"[^\n"]+\"
+label   	{id}:
 
-
+%option yylineno
 %%
+
 
 "#".*       { strcpy(value1, yytext); return T_COMMENT; }
 
@@ -24,10 +26,10 @@ label   {id}:
 ".end"		{ return T_END_DIRECTIVE;}
 ".asciiz"	{ return T_ASCIIZ_DIRECTIVE;}
 
-"$zero"		{ value = 0; return T_REG;}
-"$at"		{ value = 1; return T_REG;}
-"$v0"		{ value = 2; return T_REG;}
-"$v1"		{ value = 3; return T_REG;}
+("$zero"|"$0")	{ value = 0; return T_REG;}
+"$at"			{ value = 1; return T_REG;}
+"$v0"			{ value = 2; return T_REG;}
+"$v1"			{ value = 3; return T_REG;}
 
 "$a0"		{ value = 4; return T_REG;}
 "$a1"		{ value = 5; return T_REG;}
@@ -141,14 +143,34 @@ label   {id}:
 ")"         { return RPAR;}
 ":"         { return COLON;}
 "+"			{ return PLUS;}
-","         { }
+("\'"|"\\")	{ return STRAY; }
+","         ;
 {ws}        ;
 
 
-{label}     { yytext[strlen(yytext)-1] = 0; strcpy(value1, yytext); return LABEL; }
+{label}     { yytext[ strlen(yytext)-1 ] = 0; strcpy(value1, yytext); return LABEL; }
 
 {id} 		{ strcpy(value1, yytext); return T_ID;}
-{number}	{ strcpy(value1, yytext); return T_INT_NUM;}
+{hexnumber}	{ if( yytext[1] == '\\' ){	// Escaped character
+				switch( yytext[2] ){
+					case '\'': 	strcpy(value1,"0x27"); break;
+					case '\"': 	strcpy(value1,"0x22"); break;
+					case '\?': 	strcpy(value1,"0x3f"); break;
+					case '\\': 	strcpy(value1,"0x5c"); break;
+					case 'a': 	strcpy(value1,"0x07"); break;
+					case 'b': 	strcpy(value1,"0x08"); break;
+					case 'f': 	strcpy(value1,"0x0c"); break;
+					case 'n': 	strcpy(value1,"0x0a"); break;
+					case 'r': 	strcpy(value1,"0x0d"); break;
+					case 't': 	strcpy(value1,"0x09"); break;
+					case 'v': 	strcpy(value1,"0x0b"); break;
+				}
+			  }
+			  else if( yytext[0] == '\'' ) sprintf(value1, "%d", yytext[1]); // Keep the character between both '
+			  else strcpy(value1, yytext); // Normal integer / hex number
+
+			  return T_HEX_NUM;
+			}
 
 %%
 
@@ -156,4 +178,6 @@ int yywrap()
 {
 	return 1;
 }
+
+
 
