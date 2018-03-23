@@ -156,14 +156,22 @@ int32_t f_i1(){
 
     tok1 = yylex(); rt = value;
     tok2 = yylex(); rs = value;
-    tok3 = yylex(); rformatnum(&imm);
+    tok3 = yylex();
 
-    if( tok1 == T_REG && tok2 == T_REG  && tok3 == T_HEX_NUM )
-        return OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
+    if( tok1 == T_REG && tok2 == T_REG ){
+        if( tok3 == T_HEX_NUM ){
+            rformatnum(&imm);
+            return OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
+        }
+        if( tok3 == T_ID ){
+            if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
+            imm = LABEL_ADDRESS[value1];
+            return OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
+        }
+    }
 
     yyerror("");
 }
-
 
 /* J-Type Instructions */
 
@@ -292,45 +300,23 @@ void switch_1(){
 
 
             /*** Directives ***/
-            case T_ASCIIZ_DIRECTIVE:    if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
-                                        if( (tok1=yylex()) != STRING ) yyerror("Asciiz directive should be followed by a string.");
-                                        printf("Write \'%s\' to data (DC: %#010x)\n", value1, DC); DC += strlen(value1) + 1;
+            case T_ASCIIZ_DIRECTIVE:    yylex(); DC += strlen(value1) + 1;
                                         break;
 
-            case T_WORD_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
-                                        if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Word directive should be followed by an integer.");
-                                        rformatnum(&val);
-                                        printf("Write 4 bytes of %#010x to data (DC: %#010x)\n", val, DC); DC += 4;
+            case T_WORD_DIRECTIVE:      DC += 4;
                                         break;
 
-            case T_BYTE_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
-                                        if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Byte directive should be followed by an integer or a char.");
-                                        rformatnum(&val);
-                                        printf("Write 1 byte of %#010x to data (DC: %#010x)\n", val, DC); DC+=1;
+            case T_BYTE_DIRECTIVE:      DC+=1;
                                         break;
 
-            case T_HALF_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
-                                        if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Half directive should be followed by an integer.");
-                                        rformatnum(&val);
-                                        printf("Write 2 bytes of %#010x to data (DC: %#010x)\n", val, DC); DC+=2;
+            case T_HALF_DIRECTIVE:      DC+=2;
                                         break;
 
-            case T_GLOBL_DIRECTIVE:     if((tok1=yylex()) != T_ID) yyerror("Global directive should be followed by an ID.");
-                                        if(strcmp(value1, "main") == 0) IS_GLOBAL_MAIN = TRUE;
-                                        // do something ?
-                                        break;
-
-            case T_END_DIRECTIVE:       if((tok1=yylex()) != T_ID) yyerror("End directive should be followed by an ID.");
-                                        if(LABEL_ADDRESS.count(value1) == 0) yyerror("End's ID not found.");
-                                        // do something ?
-                                        break;
-
-            case T_DATA_DIRECTIVE: printf("\n\n/*** DATA SEGMENT ***/\n\n"); IS_DATA_SEGMENT = TRUE;  break;
-            case T_TEXT_DIRECTIVE: printf("\n\n/*** TEXT SEGMENT ***/\n\n"); IS_DATA_SEGMENT = FALSE; break;
-            case LABEL:     if( LABEL_ADDRESS.count(value1) && ( N_EXEC == 0 ) ) yyerror("Label already exists");
+            case T_DATA_DIRECTIVE:      IS_DATA_SEGMENT = TRUE;  break;
+            case T_TEXT_DIRECTIVE:      IS_DATA_SEGMENT = FALSE; break;
+            case LABEL:     if( LABEL_ADDRESS.count(value1)) yyerror("Label already exists");
                             LABEL_ADDRESS[value1] = (IS_DATA_SEGMENT ? DC : PC); break;
         }
-
         /* Data padding */
         if( DC % PADDING_BYTES_SIZE )
             DC += PADDING_BYTES_SIZE - DC % PADDING_BYTES_SIZE;
@@ -401,9 +387,6 @@ void switch_2(){
 
             case T_DATA_DIRECTIVE: printf("\n\n/*** DATA SEGMENT ***/\n\n"); IS_DATA_SEGMENT = TRUE;  break;
             case T_TEXT_DIRECTIVE: printf("\n\n/*** TEXT SEGMENT ***/\n\n"); IS_DATA_SEGMENT = FALSE; break;
-            case LABEL:     if( LABEL_ADDRESS.count(value1) && ( N_EXEC == 0 ) ) yyerror("Label already exists");
-                            LABEL_ADDRESS[value1] = (IS_DATA_SEGMENT ? DC : PC); break;
-
             /*** Bad syntax ***/
             case LPAR:
             case RPAR:
