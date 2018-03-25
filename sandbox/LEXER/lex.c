@@ -312,6 +312,7 @@ void switch_1(){
 
             case T_HALF_DIRECTIVE:      DC+=2;
                                         break;
+            case T_COMMENT:             break;
 
             case T_DATA_DIRECTIVE:      IS_DATA_SEGMENT = TRUE;  break;
             case T_TEXT_DIRECTIVE:      IS_DATA_SEGMENT = FALSE; break;
@@ -355,7 +356,7 @@ void switch_2(){
             /*** Directives ***/
             case T_ASCIIZ_DIRECTIVE:    if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != STRING ) yyerror("Asciiz directive should be followed by a string.");
-                                        fwrite(value1,sizeof value1,1,executable);
+                                        fwrite(value1,1,strlen(value1),executable);
                                         printf("Write \'%s\' to data (DC: %#010x)\n", value1, DC); DC += strlen(value1) + 1;
                                         break;
 
@@ -405,10 +406,12 @@ void switch_2(){
         }
 
         /* Data padding */
-        for(int i = 0; i < DC % PADDING_BYTES_SIZE; i++)
-        fputc('\0',executable);
-        if( DC % PADDING_BYTES_SIZE )
-            DC += PADDING_BYTES_SIZE - DC % PADDING_BYTES_SIZE;
+        if( DC % PADDING_BYTES_SIZE ){
+            offset = PADDING_BYTES_SIZE - DC % PADDING_BYTES_SIZE;
+            for(int i = 0; i < offset; i++)
+                fputc('\0', executable);
+            DC += offset;
+        }
     }
 }
 
