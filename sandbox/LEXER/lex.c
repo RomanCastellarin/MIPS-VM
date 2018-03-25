@@ -32,9 +32,10 @@ int32_t START_MAIN_ADDRESS = 0;
 
 int32_t DC = START_DATA_SEGMENT;        /* Needed to keep track of labels */
 int32_t PC = START_TEXT_SEGMENT;
-int32_t N_EXEC = 0;                         /* Number of executions of the lexer */
+
 std::map<std::string, int32_t> LABEL_ADDRESS;  /* References labels' memory addresses */
 
+FILE*   executable;                     /* Handler of the exeutable file */
 /***  ***/
 
 
@@ -192,7 +193,7 @@ int32_t f_j1(){
 
 /* Pseudo-Instructions */
 
-void f_nop(){ printf("Write %#010x to text (PC: %#010x)\n", 0x0, PC ); PC+=4; }
+void f_nop(){ int32_t val = 0; fwrite(&val,sizeof(int32_t),1,executable); PC+=4; }
 void f_li(){
     int32_t instruction;
     int32_t tok1, tok2;
@@ -211,12 +212,12 @@ void f_li(){
 
         opcode = 15; // LUI opcode
         instruction = OP(opcode) + RT(rt) + IMM(imm>>16);
-        printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+        fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
 
         opcode = 13; // ORI opcode
         rs = rt;
         instruction = OP(opcode) + RT(rt) + RS(rs) + IMM(imm);
-        printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+        fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
 
     } else {
         // IMM is a 16-bit value
@@ -226,7 +227,7 @@ void f_li(){
         rs = 0x0;
         instruction = OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
 
-        printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+        fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
     }
 }
 
@@ -246,12 +247,12 @@ void f_la(){
 
     opcode = 15; // LUI opcode
     instruction = OP(opcode) + RT(rt) + IMM(LABEL_ADDRESS[value1]>>16);
-    printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+    fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
 
     opcode = 13; // ORI opcode
     rs = rt;
     instruction = OP(opcode) + RT(rt) + RS(rs) + IMM(LABEL_ADDRESS[value1]);
-    printf("Write %#010x to text (PC: %#010x)\n", instruction, PC ); PC+=4;
+    fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
 }
 
 void f_move(){
@@ -262,10 +263,10 @@ void f_move(){
 
 // ...
 
-
 /* Utility Functions */
 
 void yyerror(const char *err){ fprintf(stderr, "ERROR: %s\nLINE: %d.\n", err, yylineno); exit(-1); }/* Handle the 'err' error and exit the program */
+
 void rformatnum(int32_t *num){ sscanf(value1, "%i", num); }                                         /* Reads a T_HEX_NUM as 0x... or integer */
 
 /***  ***/
@@ -329,50 +330,51 @@ void switch_2(){
     while( tok = yylex() ){
         switch(tok){
             /*** Regular instructions ***/
-            case R_INS_4:   printf("Write %#010x to text (PC: %#010x)\n", f_r4(), PC ); PC+=4; break;
-            case R_INS_3:   printf("Write %#010x to text (PC: %#010x)\n", f_r3(), PC ); PC+=4; break;
-            case R_INS_2:   printf("Write %#010x to text (PC: %#010x)\n", f_r2(), PC ); PC+=4; break;
-            case R_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_r1(), PC ); PC+=4; break;
+            case R_INS_4:   val = f_r4();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case R_INS_3:   val = f_r3();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case R_INS_2:   val = f_r2();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case R_INS_1:   val = f_r1();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
 
-            case I_INS_3:   printf("Write %#010x to text (PC: %#010x)\n", f_i3(), PC ); PC+=4; break;
-            case I_INS_2:   printf("Write %#010x to text (PC: %#010x)\n", f_i2(), PC ); PC+=4; break;
-            case I_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_i1(), PC ); PC+=4; break;
+            case I_INS_3:   val = f_i3();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case I_INS_2:   val = f_i2();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case I_INS_1:   val = f_i1();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
 
-            case J_INS_1:   printf("Write %#010x to text (PC: %#010x)\n", f_j1(), PC ); PC+=4; break;
+            case J_INS_1:   val = f_j1();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
 
-            case SYSCALL:   printf("Write %#010x to text (PC: %#010x)\n", f_syscall(), PC ); PC+=4; break;
+            case SYSCALL:   val = f_syscall();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
 
 
             /*** Pseudo-instructions ***/
-            case INST_NOP:  f_nop();    break;
-            case INST_LI:   f_li();     break;
-            case INST_LA:   f_la();     break;
-            case INST_MOVE: f_move();   break;
+            case INST_NOP:  f_nop(); break;
+            case INST_LI:   f_li(); break;
+            case INST_LA:   f_la(); break;
+            case INST_MOVE: f_move(); break;
             // case ...
 
 
             /*** Directives ***/
             case T_ASCIIZ_DIRECTIVE:    if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != STRING ) yyerror("Asciiz directive should be followed by a string.");
+                                        fwrite(value1,sizeof value1,1,executable);
                                         printf("Write \'%s\' to data (DC: %#010x)\n", value1, DC); DC += strlen(value1) + 1;
                                         break;
 
             case T_WORD_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Word directive should be followed by an integer.");
                                         rformatnum(&val);
-                                        printf("Write 4 bytes of %#010x to data (DC: %#010x)\n", val, DC); DC += 4;
+                                        fwrite(&val,sizeof(int32_t),1,executable); DC += 4;
                                         break;
 
             case T_BYTE_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Byte directive should be followed by an integer or a char.");
                                         rformatnum(&val);
-                                        printf("Write 1 byte of %#010x to data (DC: %#010x)\n", val, DC); DC+=1;
+                                        fwrite(&val,1,1,executable); DC+=1;
                                         break;
 
             case T_HALF_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Half directive should be followed by an integer.");
                                         rformatnum(&val);
-                                        printf("Write 2 bytes of %#010x to data (DC: %#010x)\n", val, DC); DC+=2;
+                                        fwrite(&val,2,1,executable); DC+=2;
                                         break;
 
             case T_GLOBL_DIRECTIVE:     if((tok1=yylex()) != T_ID) yyerror("Global directive should be followed by an ID.");
@@ -385,8 +387,8 @@ void switch_2(){
                                         // do something ?
                                         break;
 
-            case T_DATA_DIRECTIVE: printf("\n\n/*** DATA SEGMENT ***/\n\n"); IS_DATA_SEGMENT = TRUE;  break;
-            case T_TEXT_DIRECTIVE: printf("\n\n/*** TEXT SEGMENT ***/\n\n"); IS_DATA_SEGMENT = FALSE; break;
+            case T_DATA_DIRECTIVE:      IS_DATA_SEGMENT = TRUE;  break;
+            case T_TEXT_DIRECTIVE:      IS_DATA_SEGMENT = FALSE; break;
             /*** Bad syntax ***/
             case LPAR:
             case RPAR:
@@ -403,8 +405,8 @@ void switch_2(){
         }
 
         /* Data padding */
-        if( DC % PADDING_BYTES_SIZE )
-            DC += PADDING_BYTES_SIZE - DC % PADDING_BYTES_SIZE;
+        for(int i = 0; i < DC % PADDING_BYTES_SIZE; i++)
+        fputc('\0',executable);
     }
 }
 
@@ -415,27 +417,28 @@ void reset_counters(){
 }
 
 int main(int argv,char *arg[]){
+
     if(argv != 2){
         exit(-1);
     }
     yyin = fopen(arg[1],"r");
+    executable = fopen("file.mips","w+");
     switch_1();
+
+    /* Print the header of the exeutable */
+    DATA_SEGMENT_SIZE = DC - START_DATA_SEGMENT;
+    TEXT_SEGMENT_SIZE = PC - START_TEXT_SEGMENT;
+    START_MAIN_ADDRESS = LABEL_ADDRESS["main"];
+    fwrite(&DATA_SEGMENT_SIZE,sizeof DATA_SEGMENT_SIZE,1,executable);
+    fwrite(&TEXT_SEGMENT_SIZE,sizeof TEXT_SEGMENT_SIZE,1,executable);
+    fwrite(&START_MAIN_ADDRESS,sizeof START_MAIN_ADDRESS,1,executable);
     /* restarting execution over the file*/
     fclose(yyin);
     yyin = fopen(arg[1],"r");
     yyrestart(yyin);
     reset_counters();
-    N_EXEC++;
     switch_2();
-
-    DATA_SEGMENT_SIZE = DC - START_DATA_SEGMENT;
-    TEXT_SEGMENT_SIZE = PC - START_TEXT_SEGMENT;
-    START_MAIN_ADDRESS = LABEL_ADDRESS["main"];
-
-    printf("\n\n/*** HEADER ***/\n\n");
-    printf("Data segment size: %#010x\n", DATA_SEGMENT_SIZE);
-    printf("Text segment size: %#010x\n", TEXT_SEGMENT_SIZE);
-    printf("Main address: %#010x\n", START_MAIN_ADDRESS);
+    fclose(executable);
 
     return 0;
 }
