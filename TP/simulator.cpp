@@ -8,7 +8,7 @@
 int initialize(){
     // TODO: complete
     // 
-    PC = TEXT_START;
+    PC = MAIN_START;
 
     
     R[REG_SP] = STACK_START;
@@ -37,11 +37,12 @@ int step(){
 
     //printf("INSTRUCTION 0x%X\n", *p);
     int status = decode(*p);
-
+    
     //printf("PC 0x%X    t0 0x%X    a0 0x%X    v0 0x%X    s0 0x%X    status %i\n", PC, R[REG_T0], R[REG_A0], R[REG_V0], R[REG_S0], status);fflush(stdout);
     
     if( status ){
-        // TODO: ? 
+        // TODO: ?
+        //printf("status %d\n", status);
     }else
         PC += 4; // TODO: standarize, advance(4);
 
@@ -52,7 +53,7 @@ int step(){
 
     R[REG_ZERO] = 0;
     if( R[REG_SP] > STACK_START ) return -2; // TODO: standarize: what to do?
-    ensure_stack_size( STACK_SIZE - R[REG_SP] );
+    ensure_stack_size( STACK_START - R[REG_SP] );
     
     return 0;
 }

@@ -19,6 +19,7 @@ const uint32_t STACK_START = 0x7FFFFFFC;
 const uint32_t HEAP_START  = 0x10010000; 
 const uint32_t DATA_START  = 0x10000000; 
 const uint32_t TEXT_START  = 0x00400000; 
+extern uint32_t MAIN_START; 
 
 // Parameters
 extern uint32_t DATA_SIZE;

@@ -11,6 +11,23 @@ using namespace std;
 
 int main(){
 
+    // test program
+
+    initialize();
+
+    load_program("test1.mips");
+
+    while(true){
+        int s = step();
+        if( s == -1 ){
+            puts("oh no");
+            return -1;
+        }
+        
+        // getchar(); // step by step
+    }
+    
+    return 0;
 
     // test malloc
     
@@ -58,20 +75,7 @@ int main(){
 
     return 0;
 
-    // test program
-
-    load_program("test1.mips");
-
-    while(true){
-        int s = step();
-        if( s == -1 ){
-            puts("oh no");
-            return -1;
-        }
-        // getchar(); // step by step
-    }
     
-    return 0;
 
     // pseudo testing syscalls and registers
 

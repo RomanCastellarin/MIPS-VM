@@ -13,6 +13,8 @@ uint8_t *DATA_POINTER;
 uint8_t *TEXT_POINTER;
 uint8_t *STACK_POINTER;
 
+uint32_t MAIN_START; 
+
 // Heap Memory
 std::vector<uint8_t> Heap;
 

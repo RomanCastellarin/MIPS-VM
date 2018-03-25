@@ -21,6 +21,7 @@ int load_program(const char *filename){
     // read program header
     fread(&DATA_SIZE, sizeof(DATA_SIZE), 1, f);
     fread(&TEXT_SIZE, sizeof(TEXT_SIZE), 1, f);
+    fread(&MAIN_START, sizeof(MAIN_START), 1, f);
 
     // TODO: check size limits
 
