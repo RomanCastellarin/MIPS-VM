@@ -1,3 +1,22 @@
+#include    <cstdio>
+#include    <cstdlib>
+#include    <string>
+#include    <cstring>
+#include    <map>
+
+#define     TRUE    1
+#define     FALSE   0
+
+#define     OP(x)                   ((x)<<26)
+#define     RS(x)                   ((x)<<21)
+#define     RT(x)                   ((x)<<16)
+#define     RD(x)                   ((x)<<11)
+#define     SH(x)                   ((x)<<6)
+#define     IMM(x)                  ((x)&0xFFFF)
+
+#define     START_TEXT_SEGMENT      0x00400000
+#define     START_DATA_SEGMENT      0x10000000
+
 #define STRAY	78
 #define PLUS	79
 #define LPAR	80
