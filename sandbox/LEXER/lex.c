@@ -407,6 +407,8 @@ void switch_2(){
         /* Data padding */
         for(int i = 0; i < DC % PADDING_BYTES_SIZE; i++)
         fputc('\0',executable);
+        if( DC % PADDING_BYTES_SIZE )
+            DC += PADDING_BYTES_SIZE - DC % PADDING_BYTES_SIZE;
     }
 }
 
