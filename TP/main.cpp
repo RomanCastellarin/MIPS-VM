@@ -11,11 +11,41 @@ using namespace std;
 
 int main(){
 
+    // test loads and stores
+
+    initialize();
+
+    R[REG_SP] -= 4;
+    ensure_stack_size(STACK_START - R[REG_SP]);
+    R[REG_T0] = 0x12345678;
+    decode(0xAFA80000); // sw t0, 0($sp)
+    decode(0x83A80000); // lb t0, 0($sp)
+    decode(0x83A90001); // lb t1, 0($sp)
+    decode(0x83AA0002); // lb t2, 0($sp)
+    decode(0x83AB0003); // lb t3, 0($sp)
+    printf("%X%X%X%X\n", R[REG_T0], R[REG_T1], R[REG_T2], R[REG_T3]); //78563412
+
+    R[REG_T0] = 0xFF; // +255
+    decode(0xAFA80000); // sw t0, 0($sp)
+    decode(0x83A80000); // lb t0, 0($sp)
+    printf("%d\n", R[REG_T0]); // -1
+    decode(0x93A80000); // lbu t0, 0($sp)
+    printf("%d\n", R[REG_T0]); // 255
+
+    R[REG_T0] = 0xAB;
+    decode(0xA3A80001); // sb t0, 1($sp)
+    decode(0x8FA80000); // lw t0, 0($sp)
+    printf("%X\n", R[REG_T0]); // 255
+
+    R[REG_SP] += 4;
+
+    return 0;
+
     // test program
 
     initialize();
 
-    load_program("test1.mips");
+    load_program("file.mips");
 
     while(true){
         int s = step();

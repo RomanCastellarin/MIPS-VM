@@ -1,6 +1,7 @@
 #include "instructions.h"
 #include "regs.h"
 #include "syscalls.h"
+#include "memory.h"
 #include <map>
 #include <cstdio>
 using namespace std;
@@ -73,7 +74,7 @@ DECL_R_INSTR(div){
         LO = a / b;
         return 0;
     }catch( ... ){
-        return -1;  // TODO: standarize: DISGUSTING !
+        return ST_ERROR;  // TODO: standarize: DISGUSTING !
     }
 
 }
@@ -86,7 +87,7 @@ DECL_R_INSTR(divu){
         LO = a / b;
         return 0;
     }catch( ... ){
-        return -1;  // TODO: standarize: DISGUSTING !
+        return ST_ERROR;  // TODO: standarize: DISGUSTING !
     }
 
 }
@@ -151,6 +152,16 @@ DECL_R_INSTR(mfhi){
     return 0;
 }
 
+DECL_R_INSTR(mthi){
+    HI = R[rs];
+    return 0;
+}
+
+DECL_R_INSTR(mtlo){
+    LO = R[rs];
+    return 0;
+}
+
 DECL_R_INSTR(mflo){
     R[rd] = LO;
     return 0;
@@ -166,7 +177,7 @@ DECL_I_INSTR(addi){
 DECL_I_INSTR(beq){
     if( R[rs] == R[rt] ){
         PC = PC + SIGN_IMM(imm) * 4;
-        return 1; // TODO: standarize, maybe make "1" mean not to advance the PC
+        return ST_NOADVANCE;
     }
     return 0;
 }
@@ -174,7 +185,7 @@ DECL_I_INSTR(beq){
 DECL_I_INSTR(bne){
     if( R[rs] == R[rt] ){
         PC = PC + SIGN_IMM(imm) * 4;
-        return 1; // TODO: standarize, see "beq" instruction
+        return ST_NOADVANCE;
     }
     return 0;
 }
@@ -183,24 +194,24 @@ DECL_I_INSTR(bltz_bgez){
     if( R[rt] == 0 ){
         if( (int32_t) R[rs] < 0 ){
             PC = PC + SIGN_IMM(imm) * 4;
-            return 1; // TODO: standarize, see "beq" instruction
+            return ST_NOADVANCE;
         }
         return 0;
     }
     if( R[rt] == 1 ){
         if( (int32_t) R[rs] >= 0 ){
             PC = PC + SIGN_IMM(imm) * 4;
-            return 1; // TODO: standarize, see "beq" instruction
+            return ST_NOADVANCE;
         }
         return 0;
     }
-    return -1;
+    return ST_ERROR;
 }
 
 DECL_I_INSTR(blez){
     if( (int32_t) R[rs] <= 0 ){
         PC = PC + SIGN_IMM(imm) * 4;
-        return 1; // TODO: standarize, see "beq" instruction
+        return ST_NOADVANCE;
     }
     return 0;
 }
@@ -208,7 +219,7 @@ DECL_I_INSTR(blez){
 DECL_I_INSTR(bgtz){
     if( (int32_t) R[rs] > 0 ){
         PC = PC + SIGN_IMM(imm) * 4;
-        return 1; // TODO: standarize, see "beq" instruction
+        return ST_NOADVANCE;
     }
     return 0;
 }
@@ -248,11 +259,81 @@ DECL_I_INSTR(lui){
     return 0;
 }
 
+DECL_I_INSTR(lb){
+    int32_t offset = SIGN_IMM(imm);
+    int32_t v_addr = R[rs] + offset;
+    int8_t *r_addr = static_cast<int8_t *>(resolve_addr( v_addr ));
+    if( !r_addr )
+        return ST_ERROR;
+    R[rt] = static_cast<int32_t>(*r_addr);
+    return 0;
+}
+
+DECL_I_INSTR(sb){
+    int32_t offset = SIGN_IMM(imm);
+    int32_t v_addr = R[rs] + offset;
+    uint8_t *r_addr = static_cast<uint8_t *>(resolve_addr( v_addr ));
+    if( !r_addr )
+        return ST_ERROR;
+    *r_addr = R[rt];
+    return 0;
+}
+
+DECL_I_INSTR(sh){
+    int32_t offset = SIGN_IMM(imm);
+    int32_t v_addr = R[rs] + offset;
+    uint16_t *r_addr = static_cast<uint16_t *>(resolve_addr( v_addr ));
+    if( !r_addr )
+        return ST_ERROR;
+    *r_addr = R[rt];
+    return 0;
+}
+
+DECL_I_INSTR(lh){
+    int32_t offset = SIGN_IMM(imm);
+    int32_t v_addr = R[rs] + offset;
+    uint16_t *r_addr = static_cast<uint16_t *>(resolve_addr( v_addr ));
+    if( !r_addr )
+        return ST_ERROR;
+    R[rt] = static_cast<uint16_t>(*r_addr);
+    return 0;
+}
+
+DECL_I_INSTR(lbu){
+    int32_t offset = SIGN_IMM(imm);
+    int32_t v_addr = R[rs] + offset;
+    uint8_t *r_addr = static_cast<uint8_t *>(resolve_addr( v_addr ));
+    if( !r_addr )
+        return ST_ERROR;
+    R[rt] = static_cast<uint32_t>(*r_addr);
+    return 0;
+}
+
+DECL_I_INSTR(lw){
+    int32_t offset = SIGN_IMM(imm);
+    int32_t v_addr = R[rs] + offset;
+    uint32_t *r_addr = static_cast<uint32_t *>(resolve_addr( v_addr ));
+    if( !r_addr )
+        return ST_ERROR;
+    R[rt] = *r_addr;
+    return 0;
+}
+
+DECL_I_INSTR(sw){
+    int32_t offset = SIGN_IMM(imm);
+    int32_t v_addr = R[rs] + offset;
+    uint32_t *r_addr = static_cast<uint32_t *>(resolve_addr( v_addr ));
+    if( !r_addr )
+        return ST_ERROR;
+    *r_addr = R[rt];
+    return 0;
+}
+
 DECL_J_INSTR(j){
     addr <<= 2;
     addr |= (PC + 4) & 0xF0000000;
     PC = addr;
-    return 1; // TODO: standarize, maybe make "1" mean not to advance the PC
+    return ST_NOADVANCE;
 }
 
 DECL_J_INSTR(jal){
@@ -260,7 +341,7 @@ DECL_J_INSTR(jal){
     addr <<= 2;
     addr |= (PC + 4) & 0xF0000000;
     PC = addr;
-    return 1; // TODO: standarize, maybe make "1" mean not to advance the PC
+    return ST_NOADVANCE;
 }
 
 // R-INSTRUCTION MAP
@@ -270,7 +351,9 @@ map<int, inst_r_t> R_funct = {
     {0x03, sra},
     {0x08, jr},
     {0x10, mfhi},
+    {0x11, mthi},
     {0x12, mflo},
+    {0x13, mtlo},
     {0x18, mult},
     {0x19, multu},
     {0x1A, div},
@@ -300,7 +383,14 @@ map<int, inst_i_t> I_opcodes = {
     {0x0B, sltiu},
     {0x0C, andi},
     {0x0D, ori},
-    {0x0F, lui}
+    {0x0F, lui},
+    {0x20, lb},
+    {0x21, lh},
+    {0x23, lw},
+    {0x24, lbu},
+    {0x28, sb},
+    {0x29, sh},
+    {0x2B, sw}
 };
 
 // J-INSTRUCTION MAP
@@ -331,7 +421,7 @@ int decode(instruction i){
         else{
             // not implement or invalid TODO: STANDARIZE THIS S·H·I·T
             printf("funct %u not found\n", funct);
-            return -2;
+            return ST_ERROR;
         }
     }
     
@@ -349,7 +439,7 @@ int decode(instruction i){
         return operation(addr);        
     }
     
-    // not implemented
-    printf("opcode %u not found\n", oc);
-    return -1;
+    // not implemented TODO: standarize
+    printf("opcode %X not found\n", oc);
+    return ST_ERROR;
 }

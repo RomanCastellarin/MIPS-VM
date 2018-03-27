@@ -43,6 +43,7 @@ int step(){
     if( status ){
         // TODO: ?
         //printf("status %d\n", status);
+        if( status == -1 ) return -1;
     }else
         PC += 4; // TODO: standarize, advance(4);
 

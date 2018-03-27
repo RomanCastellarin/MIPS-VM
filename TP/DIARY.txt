@@ -13,3 +13,6 @@ earlier this week:
 
 20/03:
 	Modified the executable's header to include the 'main' memory address (where the program starts).
+
+26/03:
+	Spent the whole day trying to discover a bug in the compiler which happened to be we had misopened a file in text mode rather than binarily.

@@ -23,4 +23,11 @@ typedef int (*inst_j_t)(int32_t addr);
 // DECODE FUNCTION
 int decode(instruction i);
 
+// Status codes
+enum {
+    ST_ERROR        = -1,
+    ST_SUCCESS      =  0,
+    ST_NOADVANCE    =  1,
+};
+
 #endif
