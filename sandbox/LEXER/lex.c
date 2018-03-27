@@ -410,7 +410,8 @@ int main(int argv,char *arg[]){
         exit(-1);
     }
     yyin = fopen(arg[1],"r");
-    executable = fopen("file.mips","w+");
+    // TODO: add -o outfile support
+    executable = fopen("file.mips","wb");
     switch_1();
 
     /* Print the header of the exeutable */
