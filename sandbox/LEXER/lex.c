@@ -1,8 +1,10 @@
 
-
 extern int32_t  yylex();
 extern void     yyerror(const char*);
 extern void     rformatnum(int32_t*);
+extern void     updateinstr(int32_t*);
+extern void     updateinstr(int32_t*);
+
 
 int32_t IS_DATA_SEGMENT = TRUE;         /* Tells us whether we are on the data segment or the text segment */
 int32_t IS_GLOBAL_MAIN = FALSE;         /* Tells us if '.global main' has been specified */
@@ -20,6 +22,14 @@ std::map<std::string, int32_t> LABEL_ADDRESS;  /* References labels' memory addr
 
 FILE*   executable;                     /* Handler of the exeutable file */
 /***  ***/
+
+/* Utility Functions */
+
+void yyerror(const char *err){ fprintf(stderr, "ERROR: %s\nLINE: %d.\n", err, yylineno); exit(-1); }/* Handle the 'err' error and exit the program */
+
+void rformatnum(int32_t *num){ sscanf(value1, "%i", num); }                                         /* Reads a T_HEX_NUM as 0x... or integer */
+void updateinstr(int32_t *instr){ fwrite(instr,sizeof(int32_t),1,executable); PC+=4; }              /* Prints the instruction to the executable and updates PC */
+
 
 
 /* R-type Instructions */
@@ -92,18 +102,26 @@ int32_t f_i3(){
     tok2 = yylex();
 
     if( tok1 != T_REG ) yyerror("First argument of a Type-I Instruction should be a register.");
-
-    if( tok2 == T_ID ){ // INST T_REG, T_ID
+/*
+    if( tok2 == T_ID ){ // INST T_REG, T_ID(T_REG)
         if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
 
-        rs = 0x0;
-        imm = LABEL_ADDRESS[value1];
+        tok3 = yylex();
+        tok4 = yylex(); rs = value;
+        tok5 = yylex();
 
-        return OP(opcode) + RT(rt) + RS(rs) + IMM(imm);
+        if( not (tok3 == LPAR && tok4 == T_REG && tok5 == RPAR) ) yyerror("Syntax error.");
+        imm = LABEL_ADDRESS[value1] - PC;
+
+        return (OP(opcode) + RT(rt) + RS(rs)) | static_cast<int16_t>(imm);
     }
-
-    if( tok2 == T_HEX_NUM ){ // INST T_REG, IMM(T_REG)
+*/
+    if( tok2 == T_HEX_NUM or tok2 == T_ID_HEX ){ // INST T_REG, IMM(T_REG) or INST T_REG, ID+IMM(T_REG)
         rformatnum(&imm);
+        if(tok2 == T_ID_HEX){
+            if( LABEL_ADDRESS.count(value2) == 0 ) yyerror("ID not found.");
+            imm += LABEL_ADDRESS[value2] - DC; // TODO: Check if this is okay
+        }
 
         tok3 = yylex();
         tok4 = yylex(); rs = value;
@@ -111,10 +129,10 @@ int32_t f_i3(){
 
         if( not (tok3 == LPAR && tok4 == T_REG && tok5 == RPAR) ) yyerror("Syntax error.");
 
-        return OP(opcode) + RT(rt) + RS(rs) + IMM(imm);
+        return (OP(opcode) + RT(rt) + RS(rs)) | static_cast<int16_t>(imm);
     }
 
-    yyerror("");
+    yyerror("Wrong I-Type instruction formatting, make sure to be using INST $REG, IMM($REG) or INST $REG, ID+IMM($REG).");
 }
 
 int32_t f_i2(){
@@ -125,12 +143,22 @@ int32_t f_i2(){
     int32_t imm;
 
     tok1 = yylex(); reg = value;
-    tok2 = yylex(); rformatnum(&imm);
+    tok2 = yylex(); 
 
-    if( tok1 == T_REG && tok2 == T_HEX_NUM )
-        return OP(opcode) + ( using_rt ? RT(reg) : RS(reg) ) + IMM(imm);
+    if( tok1 == T_REG ){
+        if(tok2 == T_HEX_NUM){
+            rformatnum(&imm);
+        }
 
-    yyerror("");
+        if(tok2 == T_ID){
+            if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
+            imm = (LABEL_ADDRESS[value1] - PC)/4;
+        }
+
+        return (OP(opcode) + ( using_rt ? RT(reg) : RS(reg) )) | static_cast<int16_t>(imm);
+    }
+
+    yyerror("Wrong I-Type instruction formatting, make sure to be using INST $REG, IMM/ID.");
 }
 
 int32_t f_i1(){
@@ -145,16 +173,17 @@ int32_t f_i1(){
     if( tok1 == T_REG && tok2 == T_REG ){
         if( tok3 == T_HEX_NUM ){
             rformatnum(&imm);
-            return OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
         }
+
         if( tok3 == T_ID ){
             if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
-            imm = LABEL_ADDRESS[value1];
-            return OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
+            imm = (LABEL_ADDRESS[value1] - PC)/4;
         }
+
+        return (OP(opcode) + RS(rs) + RT(rt)) | static_cast<int16_t>(imm);
     }
 
-    yyerror("");
+    yyerror("Wrong I-Type instruction formatting, make sure to be using INST $REG, $REG, IMM/ID.");
 }
 
 /* J-Type Instructions */
@@ -166,7 +195,8 @@ int32_t f_j1(){
     tok1 = yylex();
     if(tok1 == T_ID){ // INST T_ID
         if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
-        addr = LABEL_ADDRESS[value1] >> 2;
+        addr = LABEL_ADDRESS[value1] & 0x0FFFFFFF;  // To fit 26 bits we need to get rid of the first 4 bits
+        addr >>= 2;  // Since every address is padded to 4 bytes, we don't need to store the last 2 bits
         return OP(opcode) + addr;
     }
 
@@ -176,7 +206,7 @@ int32_t f_j1(){
 
 /* Pseudo-Instructions */
 
-void f_nop(){ int32_t val = 0; fwrite(&val,sizeof(int32_t),1,executable); PC+=4; }
+void f_nop(){ int32_t val = 0; updateinstr(&val); }
 void f_li(){
     int32_t instruction;
     int32_t tok1, tok2;
@@ -185,7 +215,7 @@ void f_li(){
     tok1 = yylex(); rt = value;
     tok2 = yylex(); rformatnum(&imm);
 
-    if( tok1 != T_REG or tok2 != T_HEX_NUM ) yyerror("Wrong LI instruction formatting. make sure to be using LI $REG, IMM_VALUE.");
+    if( tok1 != T_REG or tok2 != T_HEX_NUM ) yyerror("Wrong LI instruction formatting, make sure to be using LI $REG, IMM.");
 
     if( imm >> 16 ){
         // IMM is a 32-bit value
@@ -195,12 +225,12 @@ void f_li(){
 
         opcode = 15; // LUI opcode
         instruction = OP(opcode) + RT(rt) + IMM(imm>>16);
-        fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
+        updateinstr(&instruction);
 
         opcode = 13; // ORI opcode
         rs = rt;
         instruction = OP(opcode) + RT(rt) + RS(rs) + IMM(imm);
-        fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
+        updateinstr(&instruction);
 
     } else {
         // IMM is a 16-bit value
@@ -210,7 +240,7 @@ void f_li(){
         rs = 0x0;
         instruction = OP(opcode) + RS(rs) + RT(rt) + IMM(imm);
 
-        fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
+        updateinstr(&instruction);
     }
 }
 
@@ -222,7 +252,7 @@ void f_la(){
     tok1 = yylex(); rt = value;
     tok2 = yylex();
 
-    if( tok1 != T_REG or tok2 != T_ID ) yyerror("Wrong LA instruction formatting. make sure to be using LI $REG, ID.");
+    if( tok1 != T_REG or tok2 != T_ID ) yyerror("Wrong LA instruction formatting, make sure to be using LI $REG, ID.");
 
     // LA T_REG, T_ID is gonna be split into two instructions:
     // LUI T_REG, T_ID_hi
@@ -230,12 +260,12 @@ void f_la(){
 
     opcode = 15; // LUI opcode
     instruction = OP(opcode) + RT(rt) + IMM(LABEL_ADDRESS[value1]>>16);
-    fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
+    updateinstr(&instruction);
 
     opcode = 13; // ORI opcode
     rs = rt;
     instruction = OP(opcode) + RT(rt) + RS(rs) + IMM(LABEL_ADDRESS[value1]);
-    fwrite(&instruction,sizeof(int32_t),1,executable); PC+=4;
+    updateinstr(&instruction);
 }
 
 void f_move(){
@@ -246,59 +276,46 @@ void f_move(){
 
 // ...
 
-/* Utility Functions */
-
-void yyerror(const char *err){ fprintf(stderr, "ERROR: %s\nLINE: %d.\n", err, yylineno); exit(-1); }/* Handle the 'err' error and exit the program */
-
-void rformatnum(int32_t *num){ sscanf(value1, "%i", num); }                                         /* Reads a T_HEX_NUM as 0x... or integer */
 
 /***  ***/
 
-void switch_1(){
+void assing_label_addresses(){
     int32_t tok, tok1;
     int32_t val;
     while( tok = yylex() ){
         switch(tok){
             /*** Regular instructions ***/
-            case R_INS_4:   PC+= 4; break;
-            case R_INS_3:   PC+= 4; break;
-            case R_INS_2:   PC+= 4; break;
-            case R_INS_1:   PC+= 4; break;
-
-            case I_INS_3:   PC+= 4; break;
-            case I_INS_2:   PC+= 4; break;
-            case I_INS_1:   PC+= 4; break;
-
-            case J_INS_1:   PC+= 4; break;
-
-            case SYSCALL:   PC+= 4; break;
+            case R_INS_4:
+            case R_INS_3:
+            case R_INS_2:
+            case R_INS_1:
+            case I_INS_3:
+            case I_INS_2:
+            case I_INS_1:
+            case J_INS_1:
+            case SYSCALL:
+                            PC+= 4; break;
 
 
             /*** Pseudo-instructions ***/
-            case INST_NOP:  PC+= 4;    break;
-            case INST_LI:   yylex();yylex();rformatnum(&val);if(val >>16) PC+= 8; else PC+= 4;
+            case INST_NOP:  PC+= 4; break;
+            case INST_LI:   yylex(); yylex(); rformatnum(&val); /* LI is 1 instruction if val is a 16-bit number, 2 instructions otherwise */
+                            if(val >> 16) PC+= 8; else PC+= 4;
                             break;
             case INST_LA:   PC+= 8;     break;
             case INST_MOVE: PC+= 4;     break;
             // case ...
 
-
             /*** Directives ***/
-            case T_ASCIIZ_DIRECTIVE:    yylex(); DC += strlen(value1) + 1;
-                                        break;
-
-            case T_WORD_DIRECTIVE:      DC += 4;
-                                        break;
-
-            case T_BYTE_DIRECTIVE:      DC+=1;
-                                        break;
-
-            case T_HALF_DIRECTIVE:      DC+=2;
-                                        break;
+            case T_ASCIIZ_DIRECTIVE:    yylex(); DC += strlen(value1) + 1; break;
+            case T_WORD_DIRECTIVE:      DC+=4;  break;
+            case T_BYTE_DIRECTIVE:      DC+=1;  break;
+            case T_HALF_DIRECTIVE:      DC+=2;  break;
             case T_COMMENT:             break;
 
             case T_DATA_DIRECTIVE:      IS_DATA_SEGMENT = TRUE;  break;
             case T_TEXT_DIRECTIVE:      IS_DATA_SEGMENT = FALSE; break;
+
             case LABEL:     if( LABEL_ADDRESS.count(value1)) yyerror("Label already exists");
                             LABEL_ADDRESS[value1] = (IS_DATA_SEGMENT ? DC : PC); break;
         }
@@ -308,24 +325,24 @@ void switch_1(){
     }
 }
 
-void switch_2(){
+void process_instructions(){
     int32_t tok, tok1;
     int32_t val;
     while( tok = yylex() ){
         switch(tok){
             /*** Regular instructions ***/
-            case R_INS_4:   val = f_r4();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
-            case R_INS_3:   val = f_r3();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
-            case R_INS_2:   val = f_r2();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
-            case R_INS_1:   val = f_r1();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case R_INS_4:   val = f_r4(); updateinstr(&val); break;
+            case R_INS_3:   val = f_r3(); updateinstr(&val); break;
+            case R_INS_2:   val = f_r2(); updateinstr(&val); break;
+            case R_INS_1:   val = f_r1(); updateinstr(&val); break;
 
-            case I_INS_3:   val = f_i3();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
-            case I_INS_2:   val = f_i2();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
-            case I_INS_1:   val = f_i1();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case I_INS_3:   val = f_i3(); updateinstr(&val); break;
+            case I_INS_2:   val = f_i2(); updateinstr(&val); break;
+            case I_INS_1:   val = f_i1(); updateinstr(&val); break;
 
-            case J_INS_1:   val = f_j1();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case J_INS_1:   val = f_j1(); updateinstr(&val); break;
 
-            case SYSCALL:   val = f_syscall();fwrite(&val,sizeof(int32_t),1,executable); PC+=4; break;
+            case SYSCALL:   val = f_syscall(); updateinstr(&val); break;
 
 
             /*** Pseudo-instructions ***/
@@ -340,7 +357,7 @@ void switch_2(){
             case T_ASCIIZ_DIRECTIVE:    if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != STRING ) yyerror("Asciiz directive should be followed by a string.");
                                         fwrite(value1,1,strlen(value1) + 1,executable);
-                                        printf("Write \'%s\' to data (DC: %#010x)\n", value1, DC); DC += strlen(value1) + 1;
+                                        DC += strlen(value1) + 1;   /* Also copies the '\0' char */
                                         break;
 
             case T_WORD_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
@@ -352,13 +369,13 @@ void switch_2(){
             case T_BYTE_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Byte directive should be followed by an integer or a char.");
                                         rformatnum(&val);
-                                        fwrite(&val,1,1,executable); DC+=1;
+                                        fwrite(&val,1,1,executable); DC += 1;
                                         break;
 
             case T_HALF_DIRECTIVE:      if( IS_DATA_SEGMENT == FALSE ) yyerror("Text segment is read-only.");
                                         if( (tok1=yylex()) != T_HEX_NUM ) yyerror("Half directive should be followed by an integer.");
                                         rformatnum(&val);
-                                        fwrite(&val,2,1,executable); DC+=2;
+                                        fwrite(&val,2,1,executable); DC += 2;
                                         break;
 
             case T_GLOBL_DIRECTIVE:     if((tok1=yylex()) != T_ID) yyerror("Global directive should be followed by an ID.");
@@ -410,9 +427,10 @@ int main(int argv,char *arg[]){
         exit(-1);
     }
     yyin = fopen(arg[1],"r");
-    // TODO: add -o outfile support
+
+    // TODO: add -o output file support
     executable = fopen("file.mips","wb");
-    switch_1();
+    assing_label_addresses();
 
     /* Print the header of the exeutable */
     DATA_SEGMENT_SIZE = DC - START_DATA_SEGMENT;
@@ -421,12 +439,13 @@ int main(int argv,char *arg[]){
     fwrite(&DATA_SEGMENT_SIZE,sizeof DATA_SEGMENT_SIZE,1,executable);
     fwrite(&TEXT_SEGMENT_SIZE,sizeof TEXT_SEGMENT_SIZE,1,executable);
     fwrite(&START_MAIN_ADDRESS,sizeof START_MAIN_ADDRESS,1,executable);
+
     /* restarting execution over the file*/
     fclose(yyin);
     yyin = fopen(arg[1],"r");
     yyrestart(yyin);
     reset_counters();
-    switch_2();
+    process_instructions();
     fclose(executable);
 
     return 0;
