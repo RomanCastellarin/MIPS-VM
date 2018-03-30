@@ -7,6 +7,13 @@
  * as well as the core function -step- which performs one step of the simulation
  */
 
+
+#include "memory.h"
+#include <set>
+
+// Breakpoints
+extern std::set<addr_t> Breakpoints;
+
 // initialize simulator
 int initialize();
 
@@ -15,5 +22,8 @@ int step();
 
 // reset simulator
 int reset();
+
+// shell
+int shell();
 
 #endif

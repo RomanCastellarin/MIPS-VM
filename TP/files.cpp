@@ -14,7 +14,7 @@ int load_program(const char *filename){
     FILE *f = fopen(filename, "rb");
 
     if( !f ){
-        fprintf(stderr, "Cannot open file\n");
+        fprintf(stderr, "Cannot open file\n"); fflush(stderr);
         return -1; // TODO: standarize
     }
 

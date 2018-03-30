@@ -11,6 +11,10 @@ using namespace std;
 
 int main(){
 
+    // test shell
+    initialize();
+    shell();
+
     // test loads and stores
 
     initialize();

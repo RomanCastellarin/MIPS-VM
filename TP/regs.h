@@ -82,4 +82,7 @@ enum {
     REG_RA
 };
 
+// clear registers
+void clear_registers();
+
 #endif

@@ -1,6 +1,7 @@
 #include "regs.h"
 #include <limits>
 #include <cassert>
+#include <cstring>
 
 // general purpose registers
 reg_t R[R_SIZE];
@@ -10,6 +11,13 @@ reg_t HI, LO, PC;
 
 // floating-point registers
 reg_t F[F_SIZE];
+
+// clear registers except PC
+void clear_registers(){
+    memset(R, 0, sizeof(R));
+    memset(F, 0, sizeof(F));
+    HI = LO = 0x00;
+}
 
 constexpr bool check(){
     return
