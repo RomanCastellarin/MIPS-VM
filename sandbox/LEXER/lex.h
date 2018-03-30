@@ -62,7 +62,7 @@
 #define I_INS_2 128 	// INSTR T_REG, IMM/ID
 #define I_INS_3 129 	// INSTR T_REG, IMM(T_REG)
 							// or  
-							// INSTR T_REG, T_ID+IMM(T_REG)
+							// INSTR T_REG, T_ID/T_ID+IMM, pseudoinstruction
 
 #define J_INS_1 130		// INSTR ADRESS
 

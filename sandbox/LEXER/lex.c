@@ -94,6 +94,7 @@ int32_t f_syscall(){ return 0xC; }
 
 int32_t f_i3(){
     // TODO
+    int32_t instruction;
     int32_t tok1,tok2,tok3,tok4,tok5;
     int32_t rt, rs;
     int32_t imm;
@@ -102,26 +103,34 @@ int32_t f_i3(){
     tok2 = yylex();
 
     if( tok1 != T_REG ) yyerror("First argument of a Type-I Instruction should be a register.");
-/*
-    if( tok2 == T_ID ){ // INST T_REG, T_ID(T_REG)
-        if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
 
-        tok3 = yylex();
-        tok4 = yylex(); rs = value;
-        tok5 = yylex();
-
-        if( not (tok3 == LPAR && tok4 == T_REG && tok5 == RPAR) ) yyerror("Syntax error.");
-        imm = LABEL_ADDRESS[value1] - PC;
-
-        return (OP(opcode) + RT(rt) + RS(rs)) | static_cast<int16_t>(imm);
-    }
-*/
-    if( tok2 == T_HEX_NUM or tok2 == T_ID_HEX ){ // INST T_REG, IMM(T_REG) or INST T_REG, ID+IMM(T_REG)
-        rformatnum(&imm);
-        if(tok2 == T_ID_HEX){
-            if( LABEL_ADDRESS.count(value2) == 0 ) yyerror("ID not found.");
-            imm += LABEL_ADDRESS[value2] - DC; // TODO: Check if this is okay
+    if( tok2 == T_ID or tok2 == T_ID_HEX ){ // INST T_REG, T_ID/T_ID+IMM, pseudoinstruction
+        if(tok2 == T_ID){
+            if(LABEL_ADDRESS.count(value1) == 0) yyerror("ID not found.");
+            imm = LABEL_ADDRESS[value1];
         }
+        if(tok2 == T_ID_HEX){
+            if(LABEL_ADDRESS.count(value2) == 0) yyerror("ID not found.");
+            rformatnum(&imm);
+            imm += LABEL_ADDRESS[value2];
+        }
+
+        // Now LW $REG, DATA is gonna be split into two instructions (where DATA is T_ID+IMM):
+        // lui $1, DATA_hi
+        // lw $REG, DATA_lo($1)
+
+        opcode = 15; // LUI opcode
+        instruction = OP(opcode) + RT(1) + IMM(imm>>16);
+        updateinstr(&instruction);
+
+        opcode = 33; // LW opcode
+        instruction = OP(opcode) + RS(1) + IMM(imm);
+
+        return instruction;
+    }
+
+    if( tok2 == T_HEX_NUM ){ // INST T_REG, IMM(T_REG)
+        rformatnum(&imm);
 
         tok3 = yylex();
         tok4 = yylex(); rs = value;

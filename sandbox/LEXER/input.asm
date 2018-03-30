@@ -1,5 +1,5 @@
 .data
-a: .word 'Z' #una palabra
+a: .word 30 #una palabra
 b: .word 12 #otra
 sum: .word 1
 
