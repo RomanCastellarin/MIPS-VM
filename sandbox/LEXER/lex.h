@@ -39,8 +39,8 @@
 #define T_HEX_NUM 110
 #define T_REG 111
 #define T_CHAR 112
+#define T_ID_HEX 113
 
-#define T_3 113		// placeholder
 #define T_4 114		// placeholder
 #define T_5 115		// placeholder
 #define T_6 116		// placeholder
@@ -58,11 +58,11 @@
 #define R_INS_3 125 	// INSTR T_REG, T_REG
 #define R_INS_4 126 	// INSTR T_REG
 
-#define I_INS_1 127 	// INSTR T_REG, T_REG, IMM
-#define I_INS_2 128 	// INSTR T_REG, IMM
+#define I_INS_1 127 	// INSTR T_REG, T_REG, IMM/ID/ID+IMM
+#define I_INS_2 128 	// INSTR T_REG, IMM/ID
 #define I_INS_3 129 	// INSTR T_REG, IMM(T_REG)
 							// or  
-							// INSTR T_REG, T_ID
+							// INSTR T_REG, T_ID/T_ID+IMM, pseudoinstruction
 
 #define J_INS_1 130		// INSTR ADRESS
 
@@ -82,4 +82,4 @@
 #define INST_NOP 142
 
 int opcode, funct, value;
-char value1[256];
+char value1[256], value2[256];

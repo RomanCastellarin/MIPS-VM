@@ -1,13 +1,31 @@
 %{
     #include    "lex.h"
+
+    void upd_escaped_ascii(char c){
+    	switch( c ){
+			case '\'': 	strcpy(value1,"0x27"); break;
+			case '\"': 	strcpy(value1,"0x22"); break;
+			case '\?': 	strcpy(value1,"0x3f"); break;
+			case '\\': 	strcpy(value1,"0x5c"); break;
+			case 'a': 	strcpy(value1,"0x07"); break;
+			case 'b': 	strcpy(value1,"0x08"); break;
+			case 'f': 	strcpy(value1,"0x0c"); break;
+			case 'n': 	strcpy(value1,"0x0a"); break;
+			case 'r': 	strcpy(value1,"0x0d"); break;
+			case 't': 	strcpy(value1,"0x09"); break;
+			case 'v': 	strcpy(value1,"0x0b"); break;
+		}
+    }
 %}
 
-id 			[a-zA-Z][a-zA-Z0-9]*
+id 			[a-zA-Z_][a-zA-Z0-9_]*
 char  		(\\['"\?\\abfenrtv])|([a-zA-Z0-9])
-hexnumber 	(0[xX][0-9a-fA-F]+)|([0-9]+)|('{char}')
+hexnumber 	(0[xX][0-9a-fA-F]+)|(-?[0-9]+)|('{char}')
 ws			[ \t\v\n\f]+
 string  	\"[^\n"]+\"
 label   	{id}:
+idplushex 	{id}+{hexnumber}
+idminushex 	{id}-{hexnumber}
 
 %option yylineno
 %%
@@ -27,43 +45,43 @@ label   	{id}:
 ".asciiz"	{ return T_ASCIIZ_DIRECTIVE;}
 
 ("$zero"|"$0")	{ value = 0; return T_REG;}
-"$at"			{ value = 1; return T_REG;}
-"$v0"			{ value = 2; return T_REG;}
-"$v1"			{ value = 3; return T_REG;}
+("$at"|"$1")	{ value = 1; return T_REG;}
+("$v0"|"$2")	{ value = 2; return T_REG;}
+("$v1"|"$3")	{ value = 3; return T_REG;}
 
-"$a0"		{ value = 4; return T_REG;}
-"$a1"		{ value = 5; return T_REG;}
-"$a2"		{ value = 6; return T_REG;}
-"$a3"		{ value = 7; return T_REG;}
+("$a0"|"$4")	{ value = 4; return T_REG;}
+("$a1"|"$5")	{ value = 5; return T_REG;}
+("$a2"|"$6")	{ value = 6; return T_REG;}
+("$a3"|"$7")	{ value = 7; return T_REG;}
 
-"$t0"		{ value = 8; return T_REG;}
-"$t1"		{ value = 9; return T_REG;}
-"$t2"		{ value = 10; return T_REG;}
-"$t3"		{ value = 11; return T_REG;}
-"$t4"		{ value = 12; return T_REG;}
-"$t5"		{ value = 13; return T_REG;}
-"$t6"		{ value = 14; return T_REG;}
-"$t7"		{ value = 15; return T_REG;}
+("$t0"|"$8")	{ value = 8; return T_REG;}
+("$t1"|"$9")	{ value = 9; return T_REG;}
+("$t2"|"$10")	{ value = 10; return T_REG;}
+("$t3"|"$11")	{ value = 11; return T_REG;}
+("$t4"|"$12")	{ value = 12; return T_REG;}
+("$t5"|"$13")	{ value = 13; return T_REG;}
+("$t6"|"$14")	{ value = 14; return T_REG;}
+("$t7"|"$15")	{ value = 15; return T_REG;}
 
-"$s0"		{ value = 16; return T_REG;}
-"$s1"		{ value = 17; return T_REG;}
-"$s2"		{ value = 18; return T_REG;}
-"$s3"		{ value = 19; return T_REG;}
-"$s4"		{ value = 20; return T_REG;}
-"$s5"		{ value = 21; return T_REG;}
-"$s6"		{ value = 22; return T_REG;}
-"$s7"		{ value = 23; return T_REG;}
+("$s0"|"$16")	{ value = 16; return T_REG;}
+("$s1"|"$17")	{ value = 17; return T_REG;}
+("$s2"|"$18")	{ value = 18; return T_REG;}
+("$s3"|"$19")	{ value = 19; return T_REG;}
+("$s4"|"$20")	{ value = 20; return T_REG;}
+("$s5"|"$21")	{ value = 21; return T_REG;}
+("$s6"|"$22")	{ value = 22; return T_REG;}
+("$s7"|"$23")	{ value = 23; return T_REG;}
 
-"$t8"		{ value = 24; return T_REG;}
-"$t9"		{ value = 25; return T_REG;}
+("$t8"|"$24")	{ value = 24; return T_REG;}
+("$t9"|"$25")	{ value = 25; return T_REG;}
 
-"$k0"		{ value = 26; return T_REG;}
-"$k1"		{ value = 27; return T_REG;}
+("$k0"|"$26")	{ value = 26; return T_REG;}
+("$k1"|"$27")	{ value = 27; return T_REG;}
 
-"$gp"		{ value = 28; return T_REG;}
-"$sp"		{ value = 29; return T_REG;}
-"$fp"		{ value = 30; return T_REG;}
-"$ra"		{ value = 31; return T_REG;}
+("$gp"|"$28")	{ value = 28; return T_REG;}
+("$sp"|"$29")	{ value = 29; return T_REG;}
+("$fp"|"$30")	{ value = 30; return T_REG;}
+("$ra"|"$31")	{ value = 31; return T_REG;}
 
 "sll"       { opcode = 0; funct = 0; return R_INS_1;}
 "srl"       { opcode = 0; funct = 2; return R_INS_1;}
@@ -143,7 +161,7 @@ label   	{id}:
 ")"         { return RPAR;}
 ":"         { return COLON;}
 "+"			{ return PLUS;}
-("\'"|"\\")	{ return STRAY; }
+("\'"|"\\")	{ return STRAY;}
 ","         ;
 {ws}        ;
 
@@ -151,25 +169,47 @@ label   	{id}:
 {label}     { yytext[ strlen(yytext)-1 ] = 0; strcpy(value1, yytext); return LABEL; }
 
 {id} 		{ strcpy(value1, yytext); return T_ID;}
-{hexnumber}	{ if( yytext[1] == '\\' ){	// Escaped character
-				switch( yytext[2] ){
-					case '\'': 	strcpy(value1,"0x27"); break;
-					case '\"': 	strcpy(value1,"0x22"); break;
-					case '\?': 	strcpy(value1,"0x3f"); break;
-					case '\\': 	strcpy(value1,"0x5c"); break;
-					case 'a': 	strcpy(value1,"0x07"); break;
-					case 'b': 	strcpy(value1,"0x08"); break;
-					case 'f': 	strcpy(value1,"0x0c"); break;
-					case 'n': 	strcpy(value1,"0x0a"); break;
-					case 'r': 	strcpy(value1,"0x0d"); break;
-					case 't': 	strcpy(value1,"0x09"); break;
-					case 'v': 	strcpy(value1,"0x0b"); break;
-				}
-			  }
-			  else if( yytext[0] == '\'' ) sprintf(value1, "%d", yytext[1]); // Keep the character between both '
-			  else strcpy(value1, yytext); // Normal integer / hex number
+{hexnumber}	{ if( yytext[1] == '\\' ) upd_escaped_ascii( yytext[2] );	// Escaped character
+			  else if( yytext[0] == '\'' ) sprintf(value1, "%d", yytext[1]);	// Keep the character between both '
+			  else strcpy(value1, yytext);	// Normal integer / hex number
 
 			  return T_HEX_NUM;
+			}
+
+{idplushex}	{ int32_t plussign_pos;
+			  for(plussign_pos=0; yytext[ plussign_pos ] != '+'; plussign_pos++);	// We should get the id from yytext[0...plussign_pos)
+			  																		// And the hexnumber from yytext[plussign_pos+1..'\0']
+			  yytext[ plussign_pos ] = '\0';
+			  strcpy(value2, yytext);	// We store the id on value2
+
+			  // Hexnumber processing
+			  char *hexnum_start = yytext + (plussign_pos+1);
+
+			  if( hexnum_start[1] == '\\' ) upd_escaped_ascii( hexnum_start[2] );	// Escaped character
+			  else if( hexnum_start[0] == '\'' ) sprintf(value1, "%d", hexnum_start[1]);	// Keep the character between both '
+			  else strcpy(value1, hexnum_start);	// Normal integer / hex number
+
+			  return T_ID_HEX;
+			}
+
+{idminushex}	{ 
+			  int32_t minussign_pos;
+			  for(minussign_pos=0; yytext[ minussign_pos ] != '-'; minussign_pos++);	// We should get the id from yytext[0...minussign_pos)
+			  																			// And the hexnumber from yytext[minussign_pos+1..'\0']
+			  yytext[ minussign_pos ] = '\0';
+			  strcpy(value2, yytext);	// We store the id on value2
+
+			  // Hexnumber processing
+			  char *hexnum_start = yytext + (minussign_pos+1);
+
+			  if( hexnum_start[1] == '\\' ) upd_escaped_ascii( hexnum_start[2] );	// Escaped character
+			  else if( hexnum_start[0] == '\'' ) sprintf(value1, "%d", hexnum_start[1]);	// Keep the character between both '
+			  else {
+			  	yytext[ minussign_pos ] = '-';
+			  	strcpy(value1, yytext + minussign_pos);	// Normal integer / hex number
+			  }
+
+			  return T_ID_HEX;
 			}
 
 %%
