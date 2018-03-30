@@ -261,7 +261,7 @@ void f_la(){
     tok1 = yylex(); rt = value;
     tok2 = yylex();
 
-    if( tok1 != T_REG or tok2 != T_ID ) yyerror("Wrong LA instruction formatting, make sure to be using LI $REG, ID.");
+    if( tok1 != T_REG or tok2 != T_ID ) yyerror("Wrong LA instruction formatting, make sure to be using LA $REG, ID.");
 
     // LA T_REG, T_ID is gonna be split into two instructions:
     // LUI T_REG, T_ID_hi
@@ -277,11 +277,32 @@ void f_la(){
     updateinstr(&instruction);
 }
 
-void f_move(){
-    //TODO
-    PC+=4;
-}
+void f_ble(){
+    int32_t instruction;
+    int32_t tok1, tok2, tok3;
+    int32_t rt, rs, funct, offset;
 
+    tok1 = yylex(); rs = value;
+    tok2 = yylex(); rt = value;
+    tok3 = yylex();
+
+    if( tok1 != T_REG or tok2 != T_REG or tok3 != T_ID ) yyerror("Wrong BLE instruction formatting, make sure to be using BLE $REG, $REG, ID.");
+
+    // BLE $S, $T, T_ID is gonna be split into two instructions:
+    // SLT $1, $T, $S
+    // BEQ $1, $0, T_ID
+
+    opcode = 0; // SLT opcode
+    funct = 42; // SLT funct
+
+    instruction = OP(opcode) + RS(rs) + RT(rt) + RD(1) + (funct);
+    updateinstr(&instruction);
+
+    opcode = 4; // BEQ opcode
+    offset = (LABEL_ADDRESS[value1]-PC) / 4;
+    instruction = OP(opcode) + RS(1) + static_cast<int16_t>( offset );
+    updateinstr(&instruction);
+}
 
 // ...
 
@@ -291,6 +312,7 @@ void f_move(){
 void assing_label_addresses(){
     int32_t tok, tok1;
     int32_t val;
+
     while( tok = yylex() ){
         switch(tok){
             /*** Regular instructions ***/
@@ -298,7 +320,10 @@ void assing_label_addresses(){
             case R_INS_3:
             case R_INS_2:
             case R_INS_1:
-            case I_INS_3:
+                            PC+= 4; break;
+
+            case I_INS_3:   yylex(); tok1 = yylex();
+                            if(tok1 == T_ID or tok1 == T_HEX_NUM) PC+=4;
             case I_INS_2:
             case I_INS_1:
             case J_INS_1:
@@ -312,7 +337,7 @@ void assing_label_addresses(){
                             if(val >> 16) PC+= 8; else PC+= 4;
                             break;
             case INST_LA:   PC+= 8;     break;
-            case INST_MOVE: PC+= 4;     break;
+            case INST_BLE:  PC+= 8;     break;
             // case ...
 
             /*** Directives ***/
@@ -358,7 +383,7 @@ void process_instructions(){
             case INST_NOP:  f_nop(); break;
             case INST_LI:   f_li(); break;
             case INST_LA:   f_la(); break;
-            case INST_MOVE: f_move(); break;
+            case INST_BLE:  f_ble(); break;
             // case ...
 
 
@@ -430,7 +455,7 @@ void reset_counters(){
     yylineno = 1;
 }
 
-int main(int argv,char *arg[]){
+int main(int argv, char *arg[]){
 
     if(argv != 2){
         exit(-1);

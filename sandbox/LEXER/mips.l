@@ -18,13 +18,14 @@
     }
 %}
 
-id 			[a-zA-Z][a-zA-Z0-9]*
+id 			[a-zA-Z_][a-zA-Z0-9_]*
 char  		(\\['"\?\\abfenrtv])|([a-zA-Z0-9])
 hexnumber 	(0[xX][0-9a-fA-F]+)|(-?[0-9]+)|('{char}')
 ws			[ \t\v\n\f]+
 string  	\"[^\n"]+\"
 label   	{id}:
 idplushex 	{id}+{hexnumber}
+idminushex 	{id}-{hexnumber}
 
 %option yylineno
 %%
@@ -189,7 +190,26 @@ idplushex 	{id}+{hexnumber}
 			  else strcpy(value1, hexnum_start);	// Normal integer / hex number
 
 			  return T_ID_HEX;
+			}
 
+{idminushex}	{ 
+			  int32_t minussign_pos;
+			  for(minussign_pos=0; yytext[ minussign_pos ] != '-'; minussign_pos++);	// We should get the id from yytext[0...minussign_pos)
+			  																			// And the hexnumber from yytext[minussign_pos+1..'\0']
+			  yytext[ minussign_pos ] = '\0';
+			  strcpy(value2, yytext);	// We store the id on value2
+
+			  // Hexnumber processing
+			  char *hexnum_start = yytext + (minussign_pos+1);
+
+			  if( hexnum_start[1] == '\\' ) upd_escaped_ascii( hexnum_start[2] );	// Escaped character
+			  else if( hexnum_start[0] == '\'' ) sprintf(value1, "%d", hexnum_start[1]);	// Keep the character between both '
+			  else {
+			  	yytext[ minussign_pos ] = '-';
+			  	strcpy(value1, yytext + minussign_pos);	// Normal integer / hex number
+			  }
+
+			  return T_ID_HEX;
 			}
 
 %%
