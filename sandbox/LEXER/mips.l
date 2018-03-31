@@ -46,6 +46,7 @@ idminushex 	{id}-{hexnumber}
 
 ("$zero"|"$0")	{ value = 0; return T_REG;}
 ("$at"|"$1")	{ value = 1; return T_REG;}
+
 ("$v0"|"$2")	{ value = 2; return T_REG;}
 ("$v1"|"$3")	{ value = 3; return T_REG;}
 
@@ -131,7 +132,7 @@ idminushex 	{id}-{hexnumber}
 
 "lb"      	{ opcode = 32; return I_INS_3;}
 "lh"      	{ opcode = 33; return I_INS_3;}
-"lw"      	{ opcode = 34; return I_INS_3;}
+"lw"      	{ opcode = 35; return I_INS_3;}
 "lbu"      	{ opcode = 36; return I_INS_3;}
 "lhu"      	{ opcode = 37; return I_INS_3;}
 "sb"      	{ opcode = 40; return I_INS_3;}
@@ -155,6 +156,7 @@ idminushex 	{id}-{hexnumber}
 "sge"		{ return INST_SGE;}
 "sgt"		{ return INST_SGT;}
 "nop"		{ return INST_NOP;}
+"mul"		{ return INST_MUL;}
 
 
 "("         { return LPAR;}

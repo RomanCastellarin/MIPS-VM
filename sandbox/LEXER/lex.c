@@ -3,8 +3,8 @@ extern int32_t  yylex();
 extern void     yyerror(const char*);
 extern void     rformatnum(int32_t*);
 extern void     updateinstr(int32_t*);
-extern void     updateinstr(int32_t*);
 
+#define fitsInShort(x) !(((((x) & 0xffff8000) >> 15) + 1) & 0x1fffe)
 
 int32_t IS_DATA_SEGMENT = TRUE;         /* Tells us whether we are on the data segment or the text segment */
 int32_t IS_GLOBAL_MAIN = FALSE;         /* Tells us if '.global main' has been specified */
@@ -35,15 +35,16 @@ void updateinstr(int32_t *instr){ fwrite(instr,sizeof(int32_t),1,executable); PC
 /* R-type Instructions */
 
 int32_t f_r4(){
+    bool using_rd = ( (strcmp(yytext,"mfhi") == 0) or (strcmp(yytext,"mflo") == 0) );
     int32_t tok1;
-    int32_t rs;
+    int32_t reg;
 
-    tok1 = yylex(); rs = value;
+    tok1 = yylex(); reg = value;
 
     if( tok1 == T_REG )
-        return (OP(opcode) + RS(rs) + (funct));
+        return OP(opcode) + (using_rd ? RD(reg) : RS(reg) ) + (funct);
 
-    yyerror("");
+    yyerror("Wrong R-Type instruction formatting, make sure to be using INST $REG.");
 }
 
 int32_t f_r3(){
@@ -56,7 +57,7 @@ int32_t f_r3(){
     if( tok1 == T_REG && tok2 == T_REG )
         return (OP(opcode) + RS(rs) + RT(rt) + (funct));
 
-    yyerror("");
+    yyerror("Wrong R-Type instruction formatting, make sure to be using INST $REG, $REG.");
 }
 
 int32_t f_r2(){
@@ -70,7 +71,7 @@ int32_t f_r2(){
     if( tok1 == T_REG && tok2 == T_REG && tok3 == T_REG )
         return (OP(opcode) + RS(rs) + RT(rt) + RD(rd) + (funct));
 
-    yyerror("");
+    yyerror("Wrong R-Type instruction formatting, make sure to be using INST $REG, $REG, $REG.");
 }
 
 int32_t f_r1(){
@@ -85,7 +86,7 @@ int32_t f_r1(){
     if( tok1 == T_REG && tok2 == T_REG && tok3 == T_HEX_NUM )
         return OP(opcode) + RD(rd) + RT(rt) + SH(shamt & 0x3F) + (funct);
 
-    yyerror("");
+    yyerror("Wrong R-Type instruction formatting, make sure to be using INST $REG, $REG, SHAMT.");
 }
 
 int32_t f_syscall(){ return 0xC; }
@@ -93,7 +94,6 @@ int32_t f_syscall(){ return 0xC; }
 /* I-Type Instructions */
 
 int32_t f_i3(){
-    // TODO
     int32_t instruction;
     int32_t tok1,tok2,tok3,tok4,tok5;
     int32_t rt, rs;
@@ -123,7 +123,7 @@ int32_t f_i3(){
         instruction = OP(opcode) + RT(1) + IMM(imm>>16);
         updateinstr(&instruction);
 
-        opcode = 33; // LW opcode
+        opcode = 33; // LW opcode       
         instruction = OP(opcode) + RS(1) + IMM(imm);
 
         return instruction;
@@ -138,14 +138,15 @@ int32_t f_i3(){
 
         if( not (tok3 == LPAR && tok4 == T_REG && tok5 == RPAR) ) yyerror("Syntax error.");
 
-        return (OP(opcode) + RT(rt) + RS(rs)) | static_cast<int16_t>(imm);
+        instruction = OP(opcode) + RT(rt) + RS(rs) + IMM(imm);
+        return instruction;
     }
 
-    yyerror("Wrong I-Type instruction formatting, make sure to be using INST $REG, IMM($REG) or INST $REG, ID+IMM($REG).");
+    yyerror("Wrong I-Type instruction formatting, make sure to be using INST $REG, IMM($REG) or INST $REG, ID+IMM.");
 }
 
 int32_t f_i2(){
-    bool using_rt = (strcmp(value1,"lui") == 0);
+    bool using_rt = (strcmp(yytext,"lui") == 0);
 
     int32_t tok1,tok2;
     int32_t reg;
@@ -163,21 +164,23 @@ int32_t f_i2(){
             if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
             imm = (LABEL_ADDRESS[value1] - PC)/4;
         }
-
-        return (OP(opcode) + ( using_rt ? RT(reg) : RS(reg) )) | static_cast<int16_t>(imm);
+        return OP(opcode) + ( using_rt ? RT(reg) : RS(reg) ) + IMM(imm);
     }
 
     yyerror("Wrong I-Type instruction formatting, make sure to be using INST $REG, IMM/ID.");
 }
 
 int32_t f_i1(){
+    bool using_rs_rt = ( (strcmp(yytext,"beq") == 0) or (strcmp(yytext,"bne") == 0) );
+
     int32_t tok1,tok2,tok3;
-    int32_t rs,rt;
-    int32_t imm;
+    int32_t rs,rt,regs;
+    int32_t imm, instruction;
 
     tok1 = yylex(); rt = value;
     tok2 = yylex(); rs = value;
     tok3 = yylex();
+
 
     if( tok1 == T_REG && tok2 == T_REG ){
         if( tok3 == T_HEX_NUM ){
@@ -188,8 +191,10 @@ int32_t f_i1(){
             if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
             imm = (LABEL_ADDRESS[value1] - PC)/4;
         }
+        regs = using_rs_rt ? (RS(rt) + RT(rs)) : (RS(rs) + RT(rt));
+        instruction = OP(opcode) + regs + IMM(imm);
 
-        return (OP(opcode) + RS(rs) + RT(rt)) | static_cast<int16_t>(imm);
+        return instruction;
     }
 
     yyerror("Wrong I-Type instruction formatting, make sure to be using INST $REG, $REG, IMM/ID.");
@@ -199,17 +204,22 @@ int32_t f_i1(){
 
 int32_t f_j1(){
     int32_t tok1;
-    int32_t addr;
+    int32_t addr, instruction;
 
     tok1 = yylex();
     if(tok1 == T_ID){ // INST T_ID
         if( LABEL_ADDRESS.count(value1) == 0 ) yyerror("ID not found.");
         addr = LABEL_ADDRESS[value1] & 0x0FFFFFFF;  // To fit 26 bits we need to get rid of the first 4 bits
         addr >>= 2;  // Since every address is padded to 4 bytes, we don't need to store the last 2 bits
-        return OP(opcode) + addr;
+
+        instruction = OP(opcode) + addr;
+        updateinstr(&instruction);
+
+        instruction = 0x0; //Print a NOP after
+        return instruction;
     }
 
-    yyerror("Wrong J-Type instruction formatting, make sure to be using INST_J ID.");
+    yyerror("Wrong J-Type instruction formatting, make sure to be using INST ID.");
 }
 
 
@@ -226,7 +236,7 @@ void f_li(){
 
     if( tok1 != T_REG or tok2 != T_HEX_NUM ) yyerror("Wrong LI instruction formatting, make sure to be using LI $REG, IMM.");
 
-    if( imm >> 16 ){
+    if( !fitsInShort(imm) ){
         // IMM is a 32-bit value
         // LI T_REG, T_HEX_NUM is gonna be split into two instructions:
         // LUI T_REG, T_HEX_NUM_hi
@@ -280,7 +290,7 @@ void f_la(){
 void f_ble(){
     int32_t instruction;
     int32_t tok1, tok2, tok3;
-    int32_t rt, rs, funct, offset;
+    int32_t rt, rs, offset;
 
     tok1 = yylex(); rs = value;
     tok2 = yylex(); rt = value;
@@ -295,12 +305,111 @@ void f_ble(){
     opcode = 0; // SLT opcode
     funct = 42; // SLT funct
 
-    instruction = OP(opcode) + RS(rs) + RT(rt) + RD(1) + (funct);
+    instruction = OP(opcode) + RS(rt) + RT(rs) + RD(1) + (funct);
     updateinstr(&instruction);
 
     opcode = 4; // BEQ opcode
     offset = (LABEL_ADDRESS[value1]-PC) / 4;
-    instruction = OP(opcode) + RS(1) + static_cast<int16_t>( offset );
+    instruction = OP(opcode) + RS(1) + IMM( offset );
+    updateinstr(&instruction);
+}
+
+void f_bge(){
+    int32_t instruction;
+    int32_t tok1, tok2, tok3;
+    int32_t rt, rs, offset;
+
+    tok1 = yylex(); rs = value;
+    tok2 = yylex(); rt = value;
+    tok3 = yylex();
+
+    if( tok1 != T_REG or tok2 != T_REG or tok3 != T_ID ) yyerror("Wrong BLE instruction formatting, make sure to be using BLE $REG, $REG, ID.");
+
+    // BGE $S, $T, T_ID is gonna be split into two instructions:
+    // SLT $1, $S, $T
+    // BEQ $1, $0, T_ID
+
+    opcode = 0; // SLT opcode
+    funct = 42; // SLT funct
+
+    instruction = OP(opcode) + RD(1) + RS(rs) + RT(rt) + (funct);
+    updateinstr(&instruction);
+
+    opcode = 4; // BEQ opcode
+    offset = (LABEL_ADDRESS[value1]-PC) / 4;
+    instruction = OP(opcode) + RS(1) + IMM( offset );
+    updateinstr(&instruction);
+}
+
+void f_bgt(){
+    int32_t instruction;
+    int32_t tok1, tok2, tok3;
+    int32_t rt, rs, offset;
+
+    tok1 = yylex(); rs = value;
+    tok2 = yylex(); rt = value;
+    tok3 = yylex();
+
+    if( tok1 != T_REG or tok2 != T_REG or tok3 != T_ID ) yyerror("Wrong BGT instruction formatting, make sure to be using BGT $REG, $REG, ID.");
+
+    // BGT $S, $T, T_ID is gonna be split into two instructions:
+    // SLT $1, $T, $S
+    // BNE $1, $0, T_ID
+
+    opcode = 0; // SLT opcode
+    funct = 42; // SLT funct
+
+    instruction = OP(opcode) + RD(1) + RT(rs) + RS(rt) + (funct);
+    updateinstr(&instruction);
+
+    opcode = 5; // BNE opcode
+    offset = (LABEL_ADDRESS[value1]-PC) / 4;
+    instruction = OP(opcode) + RS(1) + IMM( offset );
+    updateinstr(&instruction);
+}
+
+void f_move(){
+    int32_t instruction;
+    int32_t tok1, tok2, tok3;
+    int32_t rt, rs, rd;
+
+    tok1 = yylex(); rd = value;
+    tok2 = yylex(); rs = value;
+
+    if( tok1 != T_REG or tok2 != T_REG ) yyerror("Wrong MOVE instruction formatting, make sure to be using MOVE $REG, $REG.");
+
+    // MOVE $T, $S translates to:
+    // ADD $T, $S, $0
+
+    opcode = 0; // ADD opcode
+    funct = 32; // ADD funct
+    instruction = OP(opcode) + RD(rd) + RS(rs) + (funct);
+    updateinstr(&instruction);
+}
+
+void f_mul(){
+    int32_t instruction;
+    int32_t tok1, tok2, tok3;
+    int32_t rt, rs, rd;
+
+    tok1 = yylex(); rd = value;
+    tok2 = yylex(); rs = value;
+    tok3 = yylex(); rt = value;
+
+    if( tok1 != T_REG or tok2 != T_REG or tok3 != T_REG ) yyerror("Wrong MUL instruction formatting, make sure to be using MUL $REG, $REG, $REG.");
+
+    // MUL $D, $S, $T translates to:
+    // MULT $S, $T
+    // MFLO $D
+
+    opcode = 0; // MULT opcode
+    funct = 24; // MULT funct
+    instruction = OP(opcode) + RS(rs) + RT(rt) + (funct);
+    updateinstr(&instruction);
+
+    opcode = 0; // MFLO opcode
+    funct = 18; // MFLO funct
+    instruction = OP(opcode) + RD(rd) + (funct);
     updateinstr(&instruction);
 }
 
@@ -316,28 +425,32 @@ void assing_label_addresses(){
     while( tok = yylex() ){
         switch(tok){
             /*** Regular instructions ***/
-            case R_INS_4:
-            case R_INS_3:
-            case R_INS_2:
-            case R_INS_1:
-                            PC+= 4; break;
+            case R_INS_4:   PC+= 4; break;
+            case R_INS_3:   PC+= 4; break;
+            case R_INS_2:   PC+= 4; break;
+            case R_INS_1:   PC+= 4; break;
 
             case I_INS_3:   yylex(); tok1 = yylex();
-                            if(tok1 == T_ID or tok1 == T_HEX_NUM) PC+=4;
-            case I_INS_2:
-            case I_INS_1:
-            case J_INS_1:
-            case SYSCALL:
-                            PC+= 4; break;
+                            if(tok1 == T_ID or tok1 == T_ID_HEX) PC+=8;
+                            else PC+=4;
+                            break;
+            case I_INS_2:   PC+= 4; break;
+            case I_INS_1:   PC+= 4; break;
+            case J_INS_1:   PC+= 8; break;
+            case SYSCALL:   PC+= 4; break;
 
 
             /*** Pseudo-instructions ***/
             case INST_NOP:  PC+= 4; break;
             case INST_LI:   yylex(); yylex(); rformatnum(&val); /* LI is 1 instruction if val is a 16-bit number, 2 instructions otherwise */
-                            if(val >> 16) PC+= 8; else PC+= 4;
+                            if( !fitsInShort(val) ) PC+= 8; else PC+= 4;
                             break;
             case INST_LA:   PC+= 8;     break;
             case INST_BLE:  PC+= 8;     break;
+            case INST_BGT:  PC+= 8;     break;
+            case INST_BGE:  PC+= 8;     break;
+            case INST_MOVE: PC+= 4;     break;
+            case INST_MUL:  PC+= 8;     break;
             // case ...
 
             /*** Directives ***/
@@ -351,7 +464,8 @@ void assing_label_addresses(){
             case T_TEXT_DIRECTIVE:      IS_DATA_SEGMENT = FALSE; break;
 
             case LABEL:     if( LABEL_ADDRESS.count(value1)) yyerror("Label already exists");
-                            LABEL_ADDRESS[value1] = (IS_DATA_SEGMENT ? DC : PC); break;
+                            LABEL_ADDRESS[value1] = (IS_DATA_SEGMENT ? DC : PC);
+                            break;
         }
         /* Data padding */
         if( DC % PADDING_BYTES_SIZE )
@@ -380,10 +494,14 @@ void process_instructions(){
 
 
             /*** Pseudo-instructions ***/
-            case INST_NOP:  f_nop(); break;
-            case INST_LI:   f_li(); break;
-            case INST_LA:   f_la(); break;
-            case INST_BLE:  f_ble(); break;
+            case INST_NOP:  f_nop();    break;
+            case INST_LI:   f_li();     break;
+            case INST_LA:   f_la();     break;
+            case INST_BLE:  f_ble();    break;
+            case INST_BGT:  f_bgt();    break;
+            case INST_BGE:  f_bge();    break;
+            case INST_MOVE: f_move();   break;
+            case INST_MUL:  f_mul();    break;
             // case ...
 
 
@@ -424,6 +542,7 @@ void process_instructions(){
 
             case T_DATA_DIRECTIVE:      IS_DATA_SEGMENT = TRUE;  break;
             case T_TEXT_DIRECTIVE:      IS_DATA_SEGMENT = FALSE; break;
+
             /*** Bad syntax ***/
             case LPAR:
             case RPAR:
@@ -465,6 +584,7 @@ int main(int argv, char *arg[]){
     // TODO: add -o output file support
     executable = fopen("file.mips","wb");
     assing_label_addresses();
+    //printf("\n---\n");
 
     /* Print the header of the exeutable */
     DATA_SEGMENT_SIZE = DC - START_DATA_SEGMENT;

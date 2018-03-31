@@ -1,6 +1,12 @@
 .data
 msg1:   .asciiz "Enter a number "
 msg2:   .asciiz "Fibonacci[n] = "
+msg3:   .asciiz "Checking..."
+
+# Show message
+#    li $v0, 4
+#    la $a0, msg3
+#    syscall
 
 .text
 .globl main
@@ -37,6 +43,7 @@ fib:
     
     end_fib:
     jr $ra
+
 
 main:
     # Show message

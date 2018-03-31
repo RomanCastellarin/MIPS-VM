@@ -124,7 +124,7 @@ DECL_R_INSTR(sra){
 
 DECL_R_INSTR(jr){
     PC = R[rs];
-    return 0;
+    return ST_NOADVANCE;
 }
 
 DECL_R_INSTR(and_){ // and is a reserved C++ keyword
@@ -183,7 +183,7 @@ DECL_I_INSTR(beq){
 }
 
 DECL_I_INSTR(bne){
-    if( R[rs] == R[rt] ){
+    if( R[rs] != R[rt] ){
         PC = PC + SIGN_IMM(imm) * 4;
         return ST_NOADVANCE;
     }
@@ -323,8 +323,9 @@ DECL_I_INSTR(sw){
     int32_t offset = SIGN_IMM(imm);
     int32_t v_addr = R[rs] + offset;
     uint32_t *r_addr = static_cast<uint32_t *>(resolve_addr( v_addr ));
-    if( !r_addr )
+    if( !r_addr ){
         return ST_ERROR;
+	}
     *r_addr = R[rt];
     return 0;
 }

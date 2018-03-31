@@ -1,0 +1,14 @@
+1toN:       WORKS   - Prints numbers fron 1 to N
+custom1:    WORKS   - Prints f(0) = 2, f(N) = 6 * f(N-1)
+fact:       WORKS   - Prints N!
+fibo:       WORKS   - Prints Fib[N]
+fibo2:      WORKS   - Prints Fib[ki], for N numbers k1, k2, ... kN
+gcd:        WORKS   - Prints gcd(a,b)
+permut:     WORKS   - Prints all permutations of a string
+sumdigits:  WORKS   - Prints sumOfDigits(ki), for N numbers k1, k2, ... kN
+
+
+
+One-liner to generate the 'file.mips' executable (replacing 'Assembly/FILENAME.s' by the name of your mips assembly file): 
+
+> flex mips.l lex.c && g++ -std=c++11 lex.yy.c && ./a.out Assembly/FILENAME.s

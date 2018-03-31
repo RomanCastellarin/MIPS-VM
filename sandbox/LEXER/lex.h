@@ -14,6 +14,18 @@
 #define     SH(x)                   ((x)<<6)
 #define     IMM(x)                  ((x)&0xFFFF)
 
+#define     GET_OP(x)               (((x)&0xFC000000)>>26)
+#define     GET_RS(x)               (((x)&0x3E00000)>>21)
+#define     GET_RT(x)               (((x)&0x1F0000)>>16)
+#define     GET_RD(x)               (((x)&0xF800)>>11)
+#define     GET_FUNCT(x)            ((x)&0x3F)
+#define     GET_SH(x)               (((x)&0x7C0)>>6)
+#define     GET_IMM(x)              ((x)&0xFFFF)
+#define     GET_ADDR(x)             ((x)&0x3FFFFFF)
+
+#define     SIGN_IMM(x)             ((int32_t(x)&0x7FFF) - (int32_t(x)&0x8000))
+
+
 #define     START_TEXT_SEGMENT      0x00400000
 #define     START_DATA_SEGMENT      0x10000000
 
@@ -80,6 +92,7 @@
 #define INST_SGE 140
 #define INST_SGT 141
 #define INST_NOP 142
+#define INST_MUL 143
 
 int opcode, funct, value;
 char value1[256], value2[256];

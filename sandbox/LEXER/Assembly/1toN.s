@@ -1,5 +1,5 @@
 .data
-msg1:   .asciiz "Enter a number"
+msg1:   .asciiz "Enter a number: "
 msg2:   .asciiz "i="
 
 .text
@@ -33,7 +33,7 @@ main:
         
         # Show enter
         li $v0, 11
-        li $a0, '\n'
+        li $a0, 10
         syscall
         
         addi $t0, $t0, 1
