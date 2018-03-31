@@ -11,6 +11,9 @@
 // Breakpoints
 std::set<addr_t> Breakpoints;
 
+// Ignore counter
+unsigned int IC;
+
 // Shell function type
 typedef int (*sf_t)(char *);
 
@@ -83,6 +86,7 @@ DECL_SF(s_help){
     "h help:                shows this help box\n"
     "l load <filename>:     loads indicated file\n"
     "n step:                performs one step of the simulation\n"
+    "n step <n>:            performs n steps of the simulation\n"
     "r run:                 continues execution until break\n"
     "i init:                initializes VM for a second run\n"
     "w where:               print current PC and instruction\n"
@@ -107,6 +111,33 @@ DECL_SF(s_load){
         return 0;
     }
     return load_program(args);
+}
+
+DECL_SF(s_step){
+    int n = 1;
+    if( args )
+        sscanf(args, "%i", &n);
+    for(int i = 0; i < n; ++i){
+        int s = step();
+        if( s ) return -1;
+    }
+    return 0;
+}
+
+DECL_SF(s_run){
+    while( true ){
+        if( Breakpoints.count( PC ) ){
+            if( IC > 0 ) IC--;
+            else         return 0;
+        }
+        int s = step();
+        if( s ) return -1;
+    }
+    return 0;
+}
+
+DECL_SF(s_init){
+    return initialize();
 }
 
 DECL_SF(s_where){
@@ -160,6 +191,28 @@ DECL_SF(s_clear){
     return 0;
 }
 
+DECL_SF(s_ignore){
+    unsigned int n;
+    if( !args or sscanf(args, "%u", &n) ){
+        puts("Please specify a number.");
+        return -1;
+    }
+    printf("Set number of ignores to %d.\n", n);
+    IC = n;
+    return 0;
+}
+
+DECL_SF(s_jump){
+    addr_t a;
+    if( !args or sscanf(args, "%i", &a) ){
+        puts("Please specify a valid address.");
+        return -1;
+    }
+    printf("PC set to 0x%X.\n", a);
+    PC = a;
+    return 0;
+}
+
 DECL_SF(s_print){
     puts("====== GP REGISTERS ======");
     for(int i = 0; i < R_SIZE; ++i)
@@ -174,8 +227,6 @@ DECL_SF(s_print){
     return 0;
 }
 
-
-
 DECL_SF(s_quit){
     exit(0);
 }
@@ -183,9 +234,13 @@ DECL_SF(s_quit){
 std::map<std::string, sf_t> shell_fun = {
     {"h", s_help},  {"help", s_help},
     {"l", s_load},  {"load", s_load},
+    {"s", s_step},  {"step", s_step},
+    {"r", s_run},   {"run", s_run},
     {"w", s_where}, {"where", s_where},
     {"b", s_break}, {"break", s_break},
     {"c", s_clear}, {"clear", s_clear},
+    {"i", s_ignore},{"ignore", s_ignore},
+    {"j", s_jump},  {"jump", s_jump},
     {"p", s_print}, {"print", s_print},
     {"q", s_quit},  {"quit", s_quit},
 };
