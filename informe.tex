@@ -1,0 +1,57 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\begin{document}
+\title{
+Trabajo Práctico \\
+\large R-222 Arquitectura del Computador}
+\author{ Lisandro Maselli\\
+Roman Castellarin\\
+Juan Ignacion Suarez}
+\maketitle
+\section{Introducción}
+El proyecto a presentar se basa de un compilador de codigo MIPS el cual traduce
+el codigo assembler a instrucciones que luego un procesador emulado ejecuta.
+
+El proyecto se divide en 2 partes:
+    emular el procesador MIPS el cual recibe sus instrucciones de un archivo y
+    las ejecuta
+
+    crear un lexer y parser el cual es capaz de traducir un programa escrito
+    en el assembler de MIPS y generar un archivo el cual el procesador es capaz
+    de interpretar
+    
+ \section{Compilador de MIPS}
+    
+    
+
+\section{Emulador de procesador MiPS}
+
+para emular el procesador vamos a mantener todos los registros en memoria y a
+medida que se interpretan las instrucciones estos van modificandose.
+para eso definimos a los registros como un array de 32 enteros de 32 bits
+y 3 variables de enteros de 32 bits para  los registros LO, HI y PC.
+
+la interpretacion de las instrucciones se lleva a cabo primero decodificando
+estas y mapeando su significado a una funcion respectiva.
+
+\section{Notas y problemas encontrados}
+earlier this week:
+	We don't understand how memory should be mapped in a multitask OS. We leave that aside. Our simulation is simplified so as to not need \($gp)\ register and alikes.
+
+	We try to understand how to encode the data segment into an executable. We find out that depends on the OS and has nothng to do with MIPS architecture. We invent own our executable format.
+
+	Does the PC always point to the current instruction? Yes. We dug into the matter and discovered the truth.
+
+15/03:
+	We add support for floating point types, we struggle trying to find a way to check during compilation time that the machine is compliant with IEEE754 standards.
+
+18-19/03:
+    Stack and Heap successfully virtualized!
+
+20/03:
+	Modified the executable's header to include the 'main' memory address (where the program starts).
+
+26/03:
+	Spent the whole day trying to discover a bug in the compiler which happened to be we had misopened a file in text mode rather than binarily.
+
+\end{document}
