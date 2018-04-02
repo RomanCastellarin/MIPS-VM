@@ -125,6 +125,8 @@ DECL_SF(s_step){
 }
 
 DECL_SF(s_run){
+    if( Breakpoints.count(PC) )
+        IC++;
     while( true ){
         if( Breakpoints.count( PC ) ){
             if( IC > 0 ) IC--;
@@ -193,7 +195,7 @@ DECL_SF(s_clear){
 
 DECL_SF(s_ignore){
     unsigned int n;
-    if( !args or sscanf(args, "%u", &n) ){
+    if( !args or sscanf(args, "%u", &n) != 1 ){
         puts("Please specify a number.");
         return -1;
     }
@@ -204,12 +206,64 @@ DECL_SF(s_ignore){
 
 DECL_SF(s_jump){
     addr_t a;
-    if( !args or sscanf(args, "%i", &a) ){
+    if( !args or sscanf(args, "%i", &a) != 1 ){
         puts("Please specify a valid address.");
         return -1;
     }
     printf("PC set to 0x%X.\n", a);
     PC = a;
+    return 0;
+}
+
+DECL_SF(s_set){
+    int reg;
+    int32_t val;
+    if( !args or sscanf(args, "%i", &reg) != 1 or reg < 0 or reg >= R_SIZE ){
+        printf("Please specify a valid register (0-%d).\n", R_SIZE);
+        return -1;
+    }
+    args = strtok(NULL, " \t\n");
+    if( !args or sscanf(args, "%i", &val) != 1 ){
+        puts("Please specify an integral value for the register.");
+        return -1;
+    } 
+    printf("Register n. %d set to 0x%X.\n", reg, val);
+    R[reg] = val;
+    return 0;
+}
+
+DECL_SF(s_fset){
+    int reg;
+    float32_t val;
+    if( !args or sscanf(args, "%i", &reg) != 1 or reg < 0 or reg >= F_SIZE ){
+        printf("Please specify a valid register (0-%d).\n", F_SIZE);
+        return -1;
+    }
+    args = strtok(NULL, " \t\n");
+    if( !args or sscanf(args, "%f", &val) != 1 ){
+        puts("Please specify a floating-point value for the register.");
+        return -1;
+    }
+    AS_FLOAT(F[reg]) = val;
+    printf("Register $f%d set to 0x%X (%f).\n", reg, F[reg], val);
+    return 0;
+}
+
+DECL_SF(s_dset){
+    int reg;
+    float64_t val;
+    if( !args or sscanf(args, "%i", &reg) != 1 or reg < 0 or reg >= F_SIZE or reg & 1 ){
+        printf("Please specify a valid register (0-%d) *even*.\n", F_SIZE);
+        return -1;
+    }
+    args = strtok(NULL, " \t\n");
+    if( !args or sscanf(args, "%lf", &val) != 1 ){
+        puts("Please specify a double-precision floating-point value for the register.");
+        return -1;
+    } 
+    AS_DOUBLE(F[reg]) = val;
+    printf("Register $f%d set to 0x%X (lo %f).\n", reg, F[reg], val);
+    printf("Register $f%d set to 0x%X (hi %f).\n", reg+1, F[reg+1], val);
     return 0;
 }
 
@@ -234,13 +288,16 @@ DECL_SF(s_quit){
 std::map<std::string, sf_t> shell_fun = {
     {"h", s_help},  {"help", s_help},
     {"l", s_load},  {"load", s_load},
-    {"s", s_step},  {"step", s_step},
+    {"n", s_step},  {"step", s_step},
     {"r", s_run},   {"run", s_run},
     {"w", s_where}, {"where", s_where},
     {"b", s_break}, {"break", s_break},
     {"c", s_clear}, {"clear", s_clear},
     {"i", s_ignore},{"ignore", s_ignore},
     {"j", s_jump},  {"jump", s_jump},
+    {"s", s_set},   {"set", s_set},
+    {"f", s_fset},  {"fset", s_fset},
+    {"d", s_dset},  {"dset", s_dset},
     {"p", s_print}, {"print", s_print},
     {"q", s_quit},  {"quit", s_quit},
 };
@@ -251,6 +308,7 @@ int shell(){
         printf("$>"); fflush(stdout);
         fgets(line, 127, stdin);
         char *cmd = strtok(line, " \t\n");
+        if( !cmd ) continue;
         auto f = shell_fun[cmd];
         if( f ){
             char *args = strtok(NULL, " \t\n");
