@@ -2,30 +2,55 @@
 \usepackage[utf8]{inputenc}
 \begin{document}
 \title{
-Trabajo Práctico \\
+Trabajo Práctico Final \\
 \large R-222 Arquitectura del Computador}
 \author{ Lisandro Maselli\\
-Roman Castellarin\\
-Juan Ignacion Suarez}
+Román Castellarin\\
+Juan Ignacio Suarez}
 \maketitle
 \section{Introducción}
-El proyecto a presentar se basa de un compilador de codigo MIPS el cual traduce
-el codigo assembler a instrucciones que luego un procesador emulado ejecuta.
+El proyecto aquí presentado consistió en la investigación de la arquitectura MIPS, para el consecuente desarrollo de una máquina virtual y un compilador que permite ejecutar código assembly directamente.
 
-El proyecto se divide en 2 partes:
-    emular el procesador MIPS el cual recibe sus instrucciones de un archivo y
-    las ejecuta
+El proyecto consta de 2 partes:
+\begin{itemize}
+\item Un compilador (compuesto de un lexer + parser) que toma código assembly para MIPS y genera un archivo ejecutable para la máquina virtual.
+\item Una máquina virtual que toma el archivo generado y lo ejecuta.
+\end{itemize}    
 
-    crear un lexer y parser el cual es capaz de traducir un programa escrito
-    en el assembler de MIPS y generar un archivo el cual el procesador es capaz
-    de interpretar
+\section{Arquitectura MIPS}
+En qué consiste, brevemente cómo funciona, ventajas, etc...
+\section{Instrucciones soportadas}
+rellenar
     
- \section{Compilador de MIPS}
-    
-    
+\section{Compilador}
+\subsection{Formato ejecutable .mips}
+Escribir bien y aclarar "ver sección MV para mayor información sobre el mapeo de memoria" 
 
-\section{Emulador de procesador MiPS}
+EXECUTABLE FILE
 
+- Header (12 bytes):
+
+    4B : data-segment size (in Bytes)
+
+    4B : text-segment size (in bytes)
+
+    4B : main address
+
+- Data Segment (<data-segment size>):
+
+    Addresses start at 0x10000000
+
+- Text Segment (<text-segment size>):
+
+    Addresses start at 0x400000
+
+\subsection{Lexer}
+\subsection{Parser}
+\subsection{Problemas encontrados}
+    
+   
+\section{Máquina virtual}
+\subsection{Introducción}
 para emular el procesador vamos a mantener todos los registros en memoria y a
 medida que se interpretan las instrucciones estos van modificandose.
 para eso definimos a los registros como un array de 32 enteros de 32 bits
@@ -33,8 +58,32 @@ y 3 variables de enteros de 32 bits para  los registros LO, HI y PC.
 
 la interpretacion de las instrucciones se lleva a cabo primero decodificando
 estas y mapeando su significado a una funcion respectiva.
+\subsection{Mini SO ficticio}
+\subsubsection{Mapeo de memoria}
+Redactar bien
 
-\section{Notas y problemas encontrados}
+Text Segment starts at 0x400000
+Data Segment starts at 0x10000000
+Heap memory starts at 0x10010000
+Stack memory ends at 0x7FFFFFFC
+\subsubsection{Syscalls provistas}
+Redactar bien
+
+El argumento va en \texttt{\$v0} y las syscalls se enumeran de 1 a 12. ?
+
+\subsection{Modulos}
+\subsubsection{Syscalls}
+\subsubsection{Simulator}
+\subsubsection{Regs}
+\subsubsection{Memory}
+\subsubsection{Instructions}
+\subsubsection{Files}
+
+
+
+
+
+\subsection{Notas y problemas encontrados}
 earlier this week:
 	We don't understand how memory should be mapped in a multitask OS. We leave that aside. Our simulation is simplified so as to not need \($gp)\ register and alikes.
 
