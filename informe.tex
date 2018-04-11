@@ -9,7 +9,7 @@ Román Castellarin\\
 Juan Ignacio Suarez}
 \maketitle
 \section{Introducción}
-El proyecto aquí presentado consistió en la investigación de la arquitectura MIPS, para el consecuente desarrollo de una máquina virtual y un compilador que permite ejecutar código assembly directamente.
+El proyecto aquí presentado consistió en la investigación de las arquitecturas MIPS, para el consecuente desarrollo de una máquina virtual y un compilador que en conjunto permiten ejecutar código assembly directamente.
 
 El proyecto consta de 2 partes:
 \begin{itemize}
@@ -19,14 +19,18 @@ El proyecto consta de 2 partes:
 
 \section{Arquitectura MIPS}
 En qué consiste, brevemente cómo funciona, ventajas, etc...
-\section{Instrucciones soportadas}
+\subsection{Instrucciones soportadas}
 rellenar
     
 \section{Compilador}
 \subsection{Formato ejecutable .mips}
-Escribir bien y aclarar "ver sección MV para mayor información sobre el mapeo de memoria" 
 
-EXECUTABLE FILE
+En un archivo compilado se puede encontrar mucha más información que las instrucciones del programa que codifica, por lo tanto, su formato no sólo depende de la arquitectura, pero además del sistema operativo.
+
+Nuestra MV utiliza el siguiente formato -creado por nosotros- al cual le pusimos extensión .mips.
+
+
+ARCHIVO EJECUTABLE
 
 - Header (12 bytes):
 
@@ -43,6 +47,8 @@ EXECUTABLE FILE
 - Text Segment (<text-segment size>):
 
     Addresses start at 0x400000
+
+Ver sección MV para mayor información sobre el mapeo de memoria".
 
 \subsection{Lexer}
 \subsection{Parser}
@@ -73,6 +79,21 @@ El argumento va en \texttt{\$v0} y las syscalls se enumeran de 1 a 12. ?
 
 \subsection{Modulos}
 \subsubsection{Syscalls}
+enum \{
+    SC\_PRINT\_INTEGER    = 1,
+    SC\_PRINT\_FLOAT      = 2,
+    SC\_PRINT\_DOUBLE     = 3,
+    SC\_PRINT\_STRING     = 4,
+    SC\_READ\_INTEGER     = 5,
+    SC\_READ\_FLOAT       = 6,
+    SC\_READ\_DOUBLE      = 7,
+    SC\_READ\_STRING      = 8,
+    SC\_MALLOC           = 9,
+    SC\_EXIT             = 10,
+    SC\_PRINT\_CHAR       = 11,
+    SC\_READ\_CHAR        = 12
+    // maybe add more?
+\};
 \subsubsection{Simulator}
 \subsubsection{Regs}
 \subsubsection{Memory}
