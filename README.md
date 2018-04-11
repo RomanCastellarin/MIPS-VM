@@ -9,9 +9,11 @@ A MIPS compiler and virtual machine.
 - [ ] Virtualize console
 - [x] Virtual Machine initialization
 - [x] **Parse** assembly code
-- [ ] Extend compiler to allow for more expressive syntax
+- [x] Extend compiler to allow for more expressive syntax
 - [x] Decode assembled instructions
 - [x] Decide which instructions will be supported by the VM
 - [x] Registers declarations
 - [ ] Add support for floating point numbers
 - [ ] Add a GUI
+
+![Proud picture of the team](picture.jpg?raw=true "MIPS boys")
