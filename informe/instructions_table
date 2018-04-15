@@ -1,0 +1,97 @@
+\setlength\LTleft{-1in}
+\setlength\LTright{-1in}
+
+\begin{longtable}{|l|X|X|}
+
+\caption{Lista de instrucciones} \label{tab:long} \\
+
+\hline \multicolumn{1}{|c|}{\textbf{Instrucción}} & \multicolumn{1}{c|}{\textbf{Descripción}} & \multicolumn{1}{c|}{\textbf{Sintaxis}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{\tablename\ \thetable{} -- continuación} \\
+\hline \multicolumn{1}{|c|}{\textbf{Instrucción}} & \multicolumn{1}{c|}{\textbf{Descripción}} & \multicolumn{1}{c|}{\textbf{Sintaxis}} \\ \hline 
+\endhead
+
+\hline \multicolumn{3}{|r|}{{Continúa en la próxima página}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+       \multicolumn{3}{|c|}{{Instrucciones tipo R}} \\ \hline
+
+sll         & Shift left logical  & sll \$d, \$t, shamt  \\
+srl         & Shift right logical & srl \$d, \$t, shamt  \\
+sra         & Shift right arithmetic & sra \$d, \$t, shamt \\
+
+% sllv        & Shift left logical variable & sllv \$d, \$t, \$s \\     %
+% srlv        & Shift right logical variable & srlv \$d, \$t, \$s \\    %
+% srav        & Shift right arithmetic variable & srav \$d, \$t, \$s \\ %
+add         & Add (with overflow) & add \$d, \$s, \$t \\
+addu        & Add unsigned (no overflow) & addu \$d, \$s, \$t \\
+sub         & Subtract & sub \$d, \$s, \$t \\
+subu        & Subtract unsigned & subu \$d, \$s, \$t \\
+and         & Bitwise and & and \$d, \$s, \$t \\
+or          & Bitwise or & or \$d, \$s, \$t \\
+xor         & Bitwise exclusive or & xor \$d, \$s, \$t \\
+nor         & Negated or & nor \$d, \$s, \$t \\
+slt         & Set on less than (signed) & slt \$d, \$s, \$t \\
+sltu        & Set on less than unsigned & sltu \$d, \$s, \$t \\
+
+% jalr        & -- COMPLETAR -- & jalr -- COMPLETAR -- \\ %
+mult        & Multiply & mult \$s, \$t \\
+multu       & Multiply unsigned & multu \$s, \$t \\
+div         & Divide & div \$s, \$t \\
+divu        & Divide unsigned & divu \$s, \$t \\
+
+jr          & Jump register & jr \$s \\
+mfhi        & Move from HI & mfhi \$d \\
+mthi        & Move to HI & mthi \$s \\
+mflo        & Move from LO & mflo \$d \\
+mtlo        & Move to LO & mtlo \$s \\
+
+syscall     & System call & syscall \\
+
+\hline \multicolumn{3}{|c|}{{Instrucciones tipo I}} \\ \hline
+
+beq         & Branch if equal & beq \$s, \$t, offset \\
+bne         & Branch if not equal & bne \$s, \$t, offset \\
+addi        & Add immediate (with overflow) & addi \$t, \$s, imm \\
+addiu       & Add immediate unsigned (no overflow) & addiu \$t, \$s, imm \\
+slti        & Set on less than immediate (signed) & slti \$t, \$s, imm \\
+sltiu       & Set on less than immediate unsigned & sltiu \$t, \$s, imm \\
+andi        & Bitwise and immediate & andi \$t, \$s, imm \\
+ori         & Bitwise or immediate & ori \$t, \$s, imm \\
+xori        & Bitwise exclusive or immediate & xori \$t, \$s, imm \\
+
+blez        & Branch if less than or equal to zero & blez \$s, offset \\
+bgtz        & Branch if greater than zero & bgtz \$s, offset \\
+lui         & Load upper immediate & lui \$t, imm \\
+
+lb          & Load byte & lb \$t, offset(\$s) \\
+lh          & Load half word & lh \$t, offset(\$s) \\
+lw          & Load word & lw \$t, offset(\$s) \\
+lbu         & Load byte unsigned & lbu \$t, offset(\$s) \\
+lhu         & Load half word unsigned & lhu \$t, offset(\$s) \\
+sb          & Store byte & sb \$t, offset(\$s) \\
+sh          & Store half word & sh \$t, offset(\$s) \\
+sw          & Store word & sw \$t, offset(\$s) \\
+
+\hline \multicolumn{3}{|c|}{{Instrucciones tipo J}} \\ \hline
+
+j           & Jump & j target \\
+jal         & Jump and link & jal target \\
+
+\hline \multicolumn{3}{|c|}{{Pseudoinstrucciones}} \\ \hline
+
+nop         & No operation & nop \\ 
+li          & Load 16/32-bit immediate & li \$t, imm \\
+la          & Load label address & la \$t, address \\ 
+ble         & Branch if less or equal & ble \$s, \$t, imm \\ 
+bgt         & Branch if greater & bgt \$s, \$t, imm \\ 
+bge         & Branch if greater or equal & bge \$s, \$t, imm \\ 
+move        & Move & move \$t, \$s \\ 
+mul         & Multiply (32 bits) & mul \$d, \$s, \$t \\ 
+
+\end{longtable}
