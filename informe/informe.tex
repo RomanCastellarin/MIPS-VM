@@ -2,6 +2,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage[pdftex]{graphicx}
 \usepackage{float}
+\usepackage{booktabs}
+\usepackage[table,xcdraw]{xcolor}
 \begin{document}
 \title{
 Trabajo Práctico Final \\
@@ -20,16 +22,16 @@ El proyecto consta de 2 partes:
 \end{itemize}    
 
 \section{Arquitectura MIPS}
-En qué consiste, brevemente cómo funciona, ventajas, etc...
-
 En arquitectura computacional, RISC (Reduced Instruction Set Computer) es un tipo de diseño de CPU generalmente utilizado en microprocesadores
 o microcontroladores con las siguientes características fundamentales:
 \begin{itemize}
+\item Reducida cantidad de ciclos por instruccion (CPI)
 \item Instrucciones de tamaño fijo y presentadas en un reducido número de formatos.
-\item Sólo las instrucciones de carga y almacenamiento acceden a la memoria de datos.
-Con el nombre de MIPS (Microprocessor without Interlocked Pipeline Stages) se conoce a toda una familia de microprocesadores
-de arquitectura RISC desarrollados por MIPS Technologies.
+\item Sólo las instrucciones especificas de carga y almacenamiento acceden a la memoria de datos.
 \end{itemize}
+Con el nombre de \textbf{MIPS} \textit{(Microprocessor without Interlocked Pipeline Stages)} se conoce a toda una familia de microprocesadores de arquitectura RISC desarrollados por MIPS Technologies.\\
+
+
 Para este trabajo elegimos emular  la arquitectura de MIPS I, la cual consta con estas caracteristicas  principales :
 \begin{itemize}
 \item Ancho de palabra y tamaño de los buses : 32 bits
@@ -44,31 +46,40 @@ Para este trabajo elegimos emular  la arquitectura de MIPS I, la cual consta con
  	\begin{itemize}
  	\item Antes de ser utilizado en una instrucción aritmética, todo dato debe
  	ser cargado previamente en un registro de proposito general.
- 	\item instrucciones aritméticas con 3 operandos de 32 bits en registros.
- 	\end{itemize}
+ 	\item Instrucciones aritméticas con 3 operandos (2 sources y 1 destino) de 32 bits en registros.
+ 	\end{itemize} 
 \end{itemize}
 \subsection{Registros}
-En MIPS los registros \$0 a \$31 son de proposito general y pueden emplearse
+En MIPS los registros \$0 a \$31 son de propósito general y pueden emplearse
 para contener datos o punteros.\\
 Existe un convenio que dota de pseudónimos y usos determinados a todos los
 registros del MIPS:
-\begin{itemize}
-\item \$zero(0): constante 0 (no modificable).
-\item \$at(1): uso interno del traductor de ensamblador en pseudoinstrucciones.
-\item \$v0 - \$v1(2 - 3): valores de returno de subrutinas.
-\item \$a0 - \$a3(4 - 7): argumentos para subrutinas.
-\item \$t0 - \$t9(8 - 15 , 24 - 25): variables temporales.
-\item \$k0 - \$k1(26 - 27): reservador para el uso del nucleo del SO.
-\item \$gp(29): puntero de tabla de datos globales.
-\item \$sp(30): puntero de pila.
-\item \$fp(31): direccion de returno (usado implicitamente por instruccion jal).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\multicolumn{1}{c}{Nombre} & Número & Uso          \\ \midrule
+\$zero                & 0 & constante 0 (sólo lectura). \\
+\$at                  & 1 & uso interno del ensamblador al decodificar pseudoinstrucciones. \\
+\$v0 - \$v1       & 2-3 & valores de retorno de subrutinas. \\
+\$a0 - \$a3      & 4-7 & argumentos para subrutinas. \\
+\$t0 - \$t9      & 8-15, 24-25 & variables temporales. \\   
+\$k0 - \$k1     & 26-27 & reservado para el uso del kernel del SO.\\   
+\$gp                 & 28 & puntero de tabla de datos globales.\\
+\$sp                & 29 & puntero de pila.\\
+\$fp                 & 30 & puntero de marco. \\
+\$ra                 & 31 & dirección de retorno (usado implícitamente por instrucción jal).
+\end{tabular}%
+\end{table}
+
 \subsection{Memoria}
-La dirección física de la memoria de instrucciones, en modo usuario, empiece en la dirección
+La dirección física de la memoria de instrucciones, en modo usuario, empieza en la dirección
 0x400000 y termina en 0x0FFFFFFF
 \begin{figure}[H]
 \includegraphics[width=\textwidth]{gmemory.png}
 \end{figure}
-\end{itemize}
+
 \iffalse
 Las arquitecturas MIPS siguen la filosofía RISC, por lo que cumplen con las siguientes directrices:
 \item Es una arquitectura Load-Store, es decir, para operar con datos, estos deben cargarse desde
@@ -137,8 +148,8 @@ medida que se interpretan las instrucciones estos van modificandose.
 para eso definimos a los registros como un array de 32 enteros de 32 bits
 y 3 variables de enteros de 32 bits para  los registros LO, HI y PC.
 
-la interpretacion de las instrucciones se lleva a cabo primero decodificando
-estas y mapeando su significado a una funcion respectiva.
+la interpretación de las instrucciones se lleva a cabo primero decodificando
+estas y mapeando su significado a una función respectiva.
 \subsection{Mini SO ficticio}
 \subsubsection{Mapeo de memoria}
 Redactar bien
@@ -154,29 +165,79 @@ El argumento va en \texttt{\$v0} y las syscalls se enumeran de 1 a 12. ?
 
 \subsection{Modulos}
 \subsubsection{Syscalls}
-enum \{
-    SC\_PRINT\_INTEGER    = 1,
-    SC\_PRINT\_FLOAT      = 2,
-    SC\_PRINT\_DOUBLE     = 3,
-    SC\_PRINT\_STRING     = 4,
-    SC\_READ\_INTEGER     = 5,
-    SC\_READ\_FLOAT       = 6,
-    SC\_READ\_DOUBLE      = 7,
-    SC\_READ\_STRING      = 8,
-    SC\_MALLOC           = 9,
-    SC\_EXIT             = 10,
-    SC\_PRINT\_CHAR       = 11,
-    SC\_READ\_CHAR        = 12
-    // maybe add more?
-\};
+Este modulo se encarga de la implementacion de las llamadas al sistema.
+
+las siguientes syscalls han sido diseñadas e implementadas:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lc@{}}
+\toprule
+\multicolumn{1}{c}{Nombre} & Numero \\ \midrule
+SC\_PRINT\_INTEGER                        & 1      \\
+SC\_PRINT\_FLOAT                        & 2      \\
+SC\_PRINT\_DOUBLE                        & 3      \\
+SC\_PRINT\_STRING                       & 4      \\
+SC\_READ\_INTEGER                        & 5      \\
+SC\_READ\_FLOAT                        & 6      \\
+SC\_READ\_DOUBLE                        & 7      \\
+SC\_READ\_STRING                       & 8      \\
+SC\_MALLOC                       & 9      \\
+SC\_EXIT                       & 10      \\
+SC\_PRINT\_CHAR                       & 11      \\
+SC\_READ\_CHAR                       & 12      \\
+\end{tabular}%
+\end{table}
+
 \subsubsection{Simulator}
+
+Este modulo contiene las funciones necesarias para inicializar y resetar la maquina virtual. Ademas, implementa un pequeño \textit{shell} que permitirá correr los programas con mayor control sobre ellos. En particular, este modulo maneja los breakpoints. 
+
+Las operaciones soportadas por el shell  son las siguientes:
+
+\begin{table}[H]
+\hskip-2.0cm
+\begin{tabular}{@{}cll@{}}
+\toprule
+\multicolumn{1}{c}{Atajo} & Nombre                                                       & Acción                                                                        \\ \midrule
+h                         & help                                                         & muestra esta tabla de comandos.                                               \\
+l                         & load \textless nombre archivo\textgreater                  & abre el archivo indicado.                                                     \\
+n                         & step                                                         & realiza un paso en la simulación.                                             \\
+n                         & step \textless n\textgreater                                  & realiza n pasos de la simulación.                                             \\
+r                         & run                                                          & continúa la ejecución hasta un punto de interrupción.                         \\
+i                         & init                                                         & inicializa la máquina virtual para una segunda ejecución.                     \\
+w                         & where                                                        & imprime el valor actual del reg. PC y la instrucción apuntada.    \\
+b                         & break \textless lista de dirs\textgreater              & coloca puntos de interrupción en las dir. especificadas.               \\
+b                         & break                                                        & muestra todos los puntos de interrupción actuales.                            \\
+c                         & clear \textless lista de dirs\textgreater              & borra todos los puntos de interrupción de las direcciones indicadas.          \\
+c                         & clear                                                        & borra todos los puntos de interrupción.                                       \\
+g                         & ignore \textless n\textgreater                                & ignora n puntos de interrupción consecutivos.                                 \\
+j                         & jump \textless dirección\textgreater                          & modifica el registro PC para que apunte a la dirección seleccionada.          \\
+s                         & set \textless registro\textgreater \textless\%i\textgreater   & actualiza el valor del registro de prop. gral. con el valor dado.             \\
+f                         & fset \textless registro\textgreater \textless\%f\textgreater  & actualiza el valor del registro de pto. flotante con el valor dado.           \\
+d                         & dset \textless registro\textgreater \textless\%lf\textgreater & actualiza el valor de dos regs de pto. flotante con el doble dado. \\
+p                         & print                                                        & imprime el valor de todos los registros (incluyendo PC, HI y LO)              \\
+q                         & quit                                                         & apaga la máquina virtual.                                                    
+\end{tabular}
+\end{table}
+
 \subsubsection{Regs}
+
+Este modulo implementa los registros de propósito general ya introducidos anteriormente, como también los registros \texttt{\$f0 - \$f31} que pertenecen al coprocesador 1 y sirven para realizar operaciones con números de punto flotante, tanto en simple precision como en doble precision. En este ultimo caso, se utilizan dos registros en simultaneo para almacenar un único valor doble.
+
+Por otro lado, este modulo hace los chequeos necesarios en tiempo de compilación para garantizar que la maquina virtual sea compilada en una plataforma que soporte el estándar IEE754, ya que de esta norma depende la correctitud de nuestro simulador.
+
 \subsubsection{Memory}
+
+Este modulo se encarga de administrar la memoria de la maquina virtual automáticamente: segmento de texto, de datos, heap y stack; como también de realizar la traducción de las direcciones virtuales que maneja el programa a direcciones "reales" de la maquina virtual (que por supuesto, son a su vez direcciones virtuales para la maquina host). Notemos que a pesar de que la primitiva malloc es un syscall, su implementacion (a través de un sbrk propio) esta implementada en este modulo.
+
 \subsubsection{Instructions}
+
+Este modulo es probablemente el corazón de la maquina virtual. Aquí se encuentran implementadas todas las instrucciones de MIPS I, en conjunto con una función \texttt{decode} que se encarga de tomar una instrucción compilada e interpretarla para poder ejecutar los comandos que ella describe. 
+
 \subsubsection{Files}
 
-
-
+La función de este modulo es sencilla: abrir un programa ejecutable para MIPS y cargarlo en la maquina virtual.
 
 
 \subsection{Notas y problemas encontrados}
