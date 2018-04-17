@@ -213,11 +213,16 @@ Según esta definición, un char válido es algún caracter entre a-z, A-Z, 0-9 
 Donde aceptamos un número en formato hexadecimal, en decimal o como char encerrado entre comillas simples. De manera similar se pueden construir expresiones más grandes para reconocer otros tipos de expresiones.
 
 \subsection{Parser}
-Para interpretar el codigo, el parser hace primero una lectura de todos los tokens producidos por el lexer
-en la cual se encarga de hacer los saltos en las direcciones de memoria dependiendo el tipo de token leído
-y de asginarle a cada etiqueta la dirección de memoria que le pertenece.
-En la segunda lectura, teniendo las etiquetas con las direcciones asignadas, se encarga de traducir las instrucciones
-y las directivas de forma secuencial.
+
+Para traducir el codigo MIPS a sus expresiones en binario, el parser recibe secuencialmente los tokens producidos por el lexer.
+Internamente posee dos estructuras de control que le permite llevar a cabo la operacion:
+\begin{itemize}
+	\item Un map en el que lleva las direcciones de cada etiqueta.
+	\item Contadores que llevan la direccion del segmento de datos y del segmento de codigo actual.
+\end{itemize}
+De esta forma el parser es capaz de saber en que segmento y dirección  se encuentra.Para traducir las instrucciones,
+cada tokens es organizado dependiendo el formato de la instrucción y que tipo de parametros que recibe, lo cual le permite analizar
+semanticamente la sentencia y traducirla.
 
 
 \subsection{Problemas encontrados}
