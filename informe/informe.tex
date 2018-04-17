@@ -213,18 +213,28 @@ Según esta definición, un char válido es algún caracter entre a-z, A-Z, 0-9 
 Donde aceptamos un número en formato hexadecimal, en decimal o como char encerrado entre comillas simples. De manera similar se pueden construir expresiones más grandes para reconocer otros tipos de expresiones.
 
 \subsection{Parser}
-Para interpretar el codigo, el parser hace primero una lectura de todos los tokens producidos por el lexer
-en la cual se encarga de hacer los saltos en las direcciones de memoria dependiendo el tipo de token leído
-y de asginarle a cada etiqueta la dirección de memoria que le pertenece.
-En la segunda lectura, teniendo las etiquetas con las direcciones asignadas, se encarga de traducir las instrucciones
-y las directivas de forma secuencial.
+
+Para traducir el codigo MIPS a sus expresiones en binario, el parser recibe secuencialmente los tokens producidos por el lexer.
+Internamente posee dos estructuras de control que le permite llevar a cabo la operacion:
+\begin{itemize}
+	\item Un map en el que lleva las direcciones de cada etiqueta.
+	\item Contadores que llevan la direccion del segmento de datos y del segmento de codigo actual.
+\end{itemize}
+De esta forma el parser es capaz de saber en que segmento y dirección  se encuentra.Para traducir las instrucciones,
+cada tokens es organizado dependiendo el formato de la instrucción y que tipo de parametros que recibe, lo cual le permite analizar
+semanticamente la sentencia y traducirla.
 
 
 \subsection{Problemas encontrados}
 
-	El análisis sintáctico se produce en orden linealmente desde el inicio del archivo hasta el final. Esto produce que ciertas instrucciones no puedan ser procesadas en determinado instante pues referencian etiquetas que aún no han sido procesadas. Para solucionar este problema el compilador hace dos pasadas: en la primera sólo calcula la dirección de memoria de cada etiqueta, y en la segunda puede procesar cada instrucción sin problemas.
+\begin{itemize}
 
-    Encontramos un problema de compatibilidad dependiendo el modo en el que se accede a la escritura del ejecutable. Abriendo el archivo en modo texto resulta en un output distinto bajo Linux y Windows. Para obtener el mismo resultado en ambas plataformas se debe abrir como archivo binario.
+\item	El análisis sintáctico se produce en orden linealmente desde el inicio del archivo hasta el final. Esto produce que ciertas instrucciones no puedan ser procesadas en determinado instante pues referencian etiquetas que aún no han sido procesadas. Para solucionar este problema el compilador hace dos pasadas: en la primera sólo calcula la dirección de memoria de cada etiqueta, y en la segunda puede procesar cada instrucción sin problemas.
+
+\item    Encontramos un problema de compatibilidad dependiendo el modo en el que se accede a la escritura del ejecutable. Abriendo el archivo en modo texto resulta en un output distinto bajo Linux y Windows. Para obtener el mismo resultado en ambas plataformas se debe abrir como archivo binario.
+    
+\end{itemize}
+
    
 \section{Máquina virtual}
 \subsection{Introducción}
@@ -340,20 +350,34 @@ La función de este modulo es sencilla: abrir un programa ejecutable para MIPS y
 
 \subsection{Notas y problemas encontrados}
 
-	El mapeo de memoria en un sistema operativo multitarea se torna complejo rápidamente. Nuestra simulación se simplifica para no requerir el uso de registros como \$gp. % We don't understand how memory should be mapped in a multitask OS. We leave that aside. Our simulation is simplified so as to not need \($gp)\ register and alikes. %
+\begin{itemize}
 
-	We try to understand how to encode the data segment into an executable. We find out that depends on the OS and has nothng to do with MIPS architecture. We invent own our executable format.
+\item	El mapeo de memoria en un sistema operativo multitarea se torna complejo rápidamente. Nuestra simulación se simplifica para no requerir el uso de registros como \$gp. % We don't understand how memory should be mapped in a multitask OS. We leave that aside. Our simulation is simplified so as to not need \($gp)\ register and alikes. %
 
-	Does the PC always point to the current instruction? Yes. We dug into the matter and discovered the truth.
+\item	Tratamos de entender cómo codificar el segmento de datos dentro del ejecutable. Encontramos que esto depende únicamente del sistema operativo y no de la arquitectura MIPS, por lo que creamos nuestro propio formato ejecutable. % We try to understand how to encode the data segment into an executable. We find out that depends on the OS and has nothng to do with MIPS architecture. We invent own our executable format. %
 
-15/03:
-	We add support for floating point types, we struggle trying to find a way to check during compilation time that the machine is compliant with IEEE754 standards.
+\item	Al no utilizar el registro \$gp no tenemos acceso a una tabla de referencias globales. Esto implica que la máquina virtual no puede estar segura dónde comienza el programa, por lo que decidimos incluir la dirección de la etiqueta 'main' dentro de la cabecera del ejecutable.
 
-18-19/03:
-    Stack and Heap successfully virtualized!
+% \item	Does the PC always point to the current instruction? Yes. We dug into the matter and discovered the truth. %
 
-20/03:
-	Modified the executable's header to include the 'main' memory address (where the program starts).
+% \item	We add support for floating point types, we struggle trying to find a way to check during compilation time that the machine is compliant with IEEE754 standards. %
 
+\item	Dada la naturaleza de la memoria y el hecho que las direcciones de la pila crecen en sentido contrario, es requisito crear una estructura propia para el manejo de memoria de la pila.
+
+\end{itemize}
+
+
+
+\section{Posibles mejoras a futuro}
+
+\begin{itemize}
+
+\item Soporte total de punto flotante
+
+\item Simulación de la pipeline
+
+\item Agregar multitasking
+
+\end{itemize}
 
 \end{document}
