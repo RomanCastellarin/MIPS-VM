@@ -229,7 +229,7 @@ y las directivas de forma secuencial.
 \section{Máquina virtual}
 \subsection{Introducción}
 para emular el procesador vamos a mantener todos los registros en memoria y a
-medida que se interpretan las instrucciones estos van modificandose.
+medida que se interpretan las instrucciones estos van modificándose.
 para eso definimos a los registros como un array de 32 enteros de 32 bits
 y 3 variables de enteros de 32 bits para  los registros LO, HI y PC.
 
@@ -237,42 +237,55 @@ la interpretación de las instrucciones se lleva a cabo primero decodificando
 estas y mapeando su significado a una función respectiva.
 \subsection{Mini SO ficticio}
 \subsubsection{Mapeo de memoria}
-Redactar bien
+Nuestra maquina provee a los programas que ejecuta direcciones virtuales,
+cada vez que un programa desea realizar un acceso a memoria, ya sea para lectura o escritura,
+el SO intercepta dicha dirección y la traduce a direcciones reales. 
 
-Text Segment starts at 0x400000
-Data Segment starts at 0x10000000
-Heap memory starts at 0x10010000
-Stack memory ends at 0x7FFFFFFC
+\begin{center}
+\includegraphics[height=10cm]{mdetails.png}
+\end{center}
+
+\begin{itemize}
+\item El segmento de texto comienza en 0x400000
+\item El segmento de datos estático comienza en 0x10000000
+\item La memoria dinámica comienza en 0x10010000
+\item La pila termina en 0x7FFFFFFC
+\end{itemize}
 \subsubsection{Syscalls provistas}
-Redactar bien
+Tambien dotamos de primitivas a nuestro S.O. para poder realizar programas con mayor soltura.
+Las siguientes syscalls han sido diseñadas e implementadas:
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}llc@{}}
+\toprule
+\multicolumn{1}{c}{Nombre} & Argumento/Retorno & Numero \\ \midrule
+SC\_PRINT\_INTEGER & \texttt{\$a0} - entero a imprimir                    & 1      \\
+SC\_PRINT\_FLOAT    & \texttt{\$f12} - float a imprimir                   & 2      \\
+SC\_PRINT\_DOUBLE   & \texttt{\$f12-13} - double a imprimir                    & 3      \\
+SC\_PRINT\_STRING   & \texttt{\$a0} - puntero a string a imprimir                   & 4      \\
+SC\_READ\_INTEGER   & \texttt{\$v0} - entero leído                  & 5      \\
+SC\_READ\_FLOAT     & \texttt{\$f0} - float leído                  & 6      \\
+SC\_READ\_DOUBLE    & \texttt{\$f0-1} - double leído                   & 7      \\
+SC\_READ\_STRING    & \texttt{\$a0} - dir. donde guardar el string, \texttt{\$a1} - max.long.                  & 8      \\
+SC\_MALLOC          & \texttt{\$a0} - bytes solicitados, \texttt{\$v0} - dirección otorgada            & 9      \\
+SC\_EXIT            &           & 10      \\
+SC\_PRINT\_CHAR     & \texttt{\$a0} - char a imprimir                 & 11      \\
+SC\_READ\_CHAR      & \texttt{\$v0} - char leído                & 12      \\
+\end{tabular}%
+\end{table}
 
-El argumento va en \texttt{\$v0} y las syscalls se enumeran de 1 a 12. ?
+Para llamar a alguna de estas llamadas al sistema, es necesario guardar el numero en
+\texttt{\$v0} y luego invocar la instrucción \texttt{syscall}.
+
 
 \subsection{Modulos}
 \subsubsection{Syscalls}
 Este modulo se encarga de la implementacion de las llamadas al sistema.
 
-las siguientes syscalls han sido diseñadas e implementadas:
+La mayoría de las syscalls son simplemente \textit{wrappers} de \texttt{scanf} y \texttt{printf}, aunque \texttt{malloc} tiene una implementacion propia en el modulo \texttt{memory.h}. 
 
-\begin{table}[H]
-\centering
-\begin{tabular}{@{}lc@{}}
-\toprule
-\multicolumn{1}{c}{Nombre} & Numero \\ \midrule
-SC\_PRINT\_INTEGER                        & 1      \\
-SC\_PRINT\_FLOAT                        & 2      \\
-SC\_PRINT\_DOUBLE                        & 3      \\
-SC\_PRINT\_STRING                       & 4      \\
-SC\_READ\_INTEGER                        & 5      \\
-SC\_READ\_FLOAT                        & 6      \\
-SC\_READ\_DOUBLE                        & 7      \\
-SC\_READ\_STRING                       & 8      \\
-SC\_MALLOC                       & 9      \\
-SC\_EXIT                       & 10      \\
-SC\_PRINT\_CHAR                       & 11      \\
-SC\_READ\_CHAR                       & 12      \\
-\end{tabular}%
-\end{table}
+
+
 
 \subsubsection{Simulator}
 
