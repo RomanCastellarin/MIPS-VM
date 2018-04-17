@@ -112,11 +112,6 @@ registros del MIPS:
 Además cuenta con con 2 registros de 32 bits especiales  llamados HI y LO, que sirven
 para almacenar los resultados de la multiplicación/división y operaciones de transferencia de datos.
 \subsection{Memoria}
-La dirección física de la memoria de instrucciones, en modo usuario, empieza en la dirección 0x400000 y termina en 0x0FFFFFFF. Mientras que la dirección de la memoria
-de datos, en modo usuario, empieza en la 0x10000000 y termina en la 0x7FFFFFFF.
-\begin{center}
-\includegraphics[height=\dimexpr\pagegoal-\pagetotal-\baselineskip\relax,width=\textwidth,keepaspectratio]{gmemory.png}
-\end{center}
 MIPS tiene restricciones de acceso a memoria porque utiliza el byte como mínima unidad con dirección:
 \begin{itemize}
 \item Las palabras tienen que empezar en una dirección múltiplo de 4.
