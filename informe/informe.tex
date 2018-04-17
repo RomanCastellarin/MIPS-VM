@@ -173,6 +173,44 @@ ARCHIVO EJECUTABLE
 Ver sección MV para mayor información sobre el mapeo de memoria".
 
 \subsection{Lexer}
+
+\subsubsection{Introducción}
+
+El primer paso para la compilación consiste en un Analizador léxico (también llamado Analizador lexicográfico, Scanner o Lexer), que nos permitirá reconocer en orden cada instrucción o directiva del código fuente, donde luego produciremos como salida una secuencia de tokens (componentes léxicos).
+
+En resumen, nuestro Lexer recibe el código fuente como entrada y produce una secuencia de tokens como salida, para luego poder analizar el programa sintácticamente.
+Para esto utilizaremos un analizador léxico llamado Flex (fast lexical analyzer generator).
+
+\subsubsection{Funcionamiento}
+El funcionamiento de Flex es relativamente simple. Dada una lista de matchings posibles y token único asignado a cada match, devuelve el token del match siguiente más grande posible. Por ejemplo:
+
+\begin{verbatim}
+".asciiz"	{ return T_ASCIIZ_DIRECTIVE; }
+\end{verbatim}
+
+Devolverá el token asociado cuando encuentre una directiva asciiz. Notar que el Lexer tiene funcionalidades más poderosas como expresiones regulares, que mencionamos a continuación.
+
+\subsubsection{Características}
+Nuestro Lexer usa expresiones regulares para reconocer estructuras léxicas más complicadas como etiquetas, números hexadecimales/decimales, strings y datos de tipo char. Con la sintaxis de flex, algunas de las expresiones regulares que usamos son:
+
+\begin{verbatim}
+    id 			[a-zA-Z_][a-zA-Z0-9_]*
+\end{verbatim}
+
+Esta expresión nos indica que un id comienza con un caracter entre a-z, A-Z ó '\_', y a continuación le sigue una cantidad indeterminada de caracteres entre a-z, A-Z, 0-9 ó '\_'.
+
+\begin{verbatim}
+    char  		(\\['"\?\\abfenrtv])|([a-zA-Z0-9])
+\end{verbatim}
+
+Según esta definición, un char válido es algún caracter entre a-z, A-Z, 0-9 ó un caracter especial escapeado, como \verb!\n!. Luego utilizamos esta definición en otra más compleja:
+
+\begin{verbatim}
+    hexnumber 	(0[xX][0-9a-fA-F]+)|(-?[0-9]+)|('{char}')
+\end{verbatim}
+
+Donde aceptamos un número en formato hexadecimal, en decimal o como char encerrado entre comillas simples. De manera similar se pueden construir expresiones más grandes para reconocer otros tipos de expresiones.
+
 \subsection{Parser}
 Para interpretar el codigo, el parser hace primero una lectura de todos los tokens producidos por el lexer
 en la cual se encarga de hacer los saltos en las direcciones de memoria dependiendo el tipo de token leído
@@ -182,7 +220,10 @@ y las directivas de forma secuencial.
 
 
 \subsection{Problemas encontrados}
-    
+
+	El análisis sintáctico se produce en orden linealmente desde el inicio del archivo hasta el final. Esto produce que ciertas instrucciones no puedan ser procesadas en determinado instante pues referencian etiquetas que aún no han sido procesadas. Para solucionar este problema el compilador hace dos pasadas: en la primera sólo calcula la dirección de memoria de cada etiqueta, y en la segunda puede procesar cada instrucción sin problemas.
+
+    Encontramos un problema de compatibilidad dependiendo el modo en el que se accede a la escritura del ejecutable. Abriendo el archivo en modo texto resulta en un output distinto bajo Linux y Windows. Para obtener el mismo resultado en ambas plataformas se debe abrir como archivo binario.
    
 \section{Máquina virtual}
 \subsection{Introducción}
@@ -284,8 +325,8 @@ La función de este modulo es sencilla: abrir un programa ejecutable para MIPS y
 
 
 \subsection{Notas y problemas encontrados}
-earlier this week:
-	We don't understand how memory should be mapped in a multitask OS. We leave that aside. Our simulation is simplified so as to not need \($gp)\ register and alikes.
+
+	El mapeo de memoria en un sistema operativo multitarea se torna complejo rápidamente. Nuestra simulación se simplifica para no requerir el uso de registros como \$gp. % We don't understand how memory should be mapped in a multitask OS. We leave that aside. Our simulation is simplified so as to not need \($gp)\ register and alikes. %
 
 	We try to understand how to encode the data segment into an executable. We find out that depends on the OS and has nothng to do with MIPS architecture. We invent own our executable format.
 
@@ -300,7 +341,5 @@ earlier this week:
 20/03:
 	Modified the executable's header to include the 'main' memory address (where the program starts).
 
-26/03:
-	Spent the whole day trying to discover a bug in the compiler which happened to be we had misopened a file in text mode rather than binarily.
 
 \end{document}
