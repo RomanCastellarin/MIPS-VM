@@ -26,14 +26,14 @@ El proyecto consta de 2 partes:
 En arquitectura computacional, RISC (Reduced Instruction Set Computer) es un tipo de diseño de CPU generalmente utilizado en microprocesadores
 o microcontroladores con las siguientes características fundamentales:
 \begin{itemize}
-\item Reducida cantidad de ciclos por instruccion (CPI)
+\item Reducida cantidad de ciclos por instrucción (CPI)
 \item Instrucciones de tamaño fijo y presentadas en un reducido número de formatos.
 \item Sólo las instrucciones especificas de carga y almacenamiento acceden a la memoria de datos.
 \end{itemize}
 
 
 
-Para este trabajo elegimos emular  la arquitectura de MIPS I, la cual consta con estas caracteristicas  principales :
+Para este trabajo elegimos emular  la arquitectura de MIPS I, la cual consta con estas características  principales :
 \begin{itemize}
 \item Ancho de palabra y tamaño de los buses : 32 bits
 \item  Tamaño de los datos en las instrucciones:
@@ -46,7 +46,7 @@ Para este trabajo elegimos emular  la arquitectura de MIPS I, la cual consta con
  \item Arquitectura de carga / almacenamiento:
  	\begin{itemize}
  	\item Antes de ser utilizado en una instrucción aritmética, todo dato debe
- 	ser cargado previamente en un registro de proposito general.
+ 	ser cargado previamente en un registro de propósito general.
  	\item Instrucciones aritméticas con 3 operandos (2 sources y 1 destino) de 32 bits en registros.
  	\end{itemize} 
 \end{itemize}
@@ -74,30 +74,30 @@ registros del MIPS:
 	\end{tabular}%
 \end{table}
 Además cuenta con con 2 registros de 32 bits especiales  llamados HI y LO, que sirven
-para almacenar los resultados de la multiplicacion/division y operaciones de transferencia de datos.
+para almacenar los resultados de la multiplicación/división y operaciones de transferencia de datos.
 \subsection{Memoria}
 La dirección física de la memoria de instrucciones, en modo usuario, empieza en la dirección 0x400000 y termina en 0x0FFFFFFF. Mientras que la dirección de la memoria
 de datos, en modo usuario, empieza en la 0x10000000 y termina en la 0x7FFFFFFF.
 \begin{center}
 \includegraphics[height=\dimexpr\pagegoal-\pagetotal-\baselineskip\relax,width=\textwidth,keepaspectratio]{gmemory.png}
 \end{center}
-MIPS tiene restricciones de acceso a memoria porque utiliza el byte como minima unidad con dirección:
+MIPS tiene restricciones de acceso a memoria porque utiliza el byte como mínima unidad con dirección:
 \begin{itemize}
-\item Las palabras tienen que empezar en una direccion multiplo de 4.
-\item Las medias palabras tiene que empezar en una direccion múltiplo de 2.
+\item Las palabras tienen que empezar en una dirección múltiplo de 4.
+\item Las medias palabras tiene que empezar en una dirección múltiplo de 2.
 \end{itemize}
 \subsection{Instrucciones}
 El conjunto de instrucciones permite realizar instrucciones de carga y almacenamiento
-desde y hacia memoria, tiene capacidad de desarrollar programas que resuelven problemas aritméticos y lógicos, y ofrece la posibilidad de controlar el flujo de la ejecucíon del programa mediante instrucciones de comparacion y salto.
+desde y hacia memoria, tiene capacidad de desarrollar programas que resuelven problemas aritméticos y lógicos, y ofrece la posibilidad de controlar el flujo de la ejecución del programa mediante instrucciones de comparación y salto.
 Una breve clasificación sería:
 \begin{itemize}
 \item Instrucciones aritméticas.
 \item Instrucciones lógicas.
 \item Instrucciones de salto condicional.
 \end{itemize}
-También se pueden clasificar en funcion de los elementos que utilizan(banco de registros, memoria de datos,ALU).Cada uno de los componentes que utiliza la instrucción se debe especificar en una serie de bits. Los distintos tipos de instrucciones
+También se pueden clasificar en función de los elementos que utilizan (banco de registros, memoria de datos, ALU).Cada uno de los componentes que utiliza la instrucción se debe especificar en una serie de bits. Los distintos tipos de instrucciones
 constan de diferentes tamaños para los espacios reservados para esos bits, es decir, utilizan diferentes formatos para codificar sus campos.\\
-En MIPS R2000 se distinguen tres tipos de formatos de instruccion:
+En MIPS R2000 se distinguen tres tipos de formatos de instrucción:
 \begin{itemize}
 \item Formato R o de tipo registro
 \item Formato I o de tipo inmediato.
