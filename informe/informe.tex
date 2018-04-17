@@ -217,7 +217,7 @@ Internamente posee dos estructuras de control que le permite llevar a cabo la op
 \end{itemize}
 De esta forma el parser es capaz de saber en que segmento y dirección  se encuentra.Para traducir las instrucciones,
 cada tokens es organizado dependiendo el formato de la instrucción y que tipo de parametros que recibe, lo cual le permite analizar
-semanticamente la sentencia y traducirla.
+sintácticamente la sentencia y traducirla.
 
 
 \subsection{Problemas encontrados}
@@ -233,12 +233,12 @@ semanticamente la sentencia y traducirla.
    
 \section{Máquina virtual}
 \subsection{Introducción}
-para emular el procesador vamos a mantener todos los registros en memoria y a
+Para emular el procesador vamos a mantener todos los registros en memoria y a
 medida que se interpretan las instrucciones estos van modificándose.
 para eso definimos a los registros como un array de 32 enteros de 32 bits
 y 3 variables de enteros de 32 bits para  los registros LO, HI y PC.
 
-la interpretación de las instrucciones se lleva a cabo primero decodificando
+La interpretación de las instrucciones se lleva a cabo primero decodificando
 estas y mapeando su significado a una función respectiva.
 \subsection{Mini SO ficticio}
 \subsubsection{Mapeo de memoria}
@@ -372,6 +372,8 @@ La función de este modulo es sencilla: abrir un programa ejecutable para MIPS y
 \item Simulación de la pipeline
 
 \item Agregar multitasking
+
+\item Añadir más pseudoinstrucciones
 
 \end{itemize}
 
