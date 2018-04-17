@@ -1,5 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
 \usepackage[pdftex]{graphicx}
 \usepackage{float}
 \usepackage{booktabs}
@@ -33,7 +34,7 @@ Ingeniería y Agrimensura\\}
 \vspace{0.5cm}
 \large{Trabajo Práctico Final}\\
 
-\Large{\bf Compilador y Máquina virtual arquitectura MIPS}\\
+\Large{\bf Compilador y Máquina Virtual para arquitectura MIPS}\\
 \vspace{5cm}
 
 \normalsize
@@ -150,27 +151,27 @@ En MIPS R2000 se distinguen tres tipos de formatos de instrucción:
 En un archivo compilado se puede encontrar mucha más información que las instrucciones del programa que codifica, por lo tanto, su formato no sólo depende de la arquitectura, sino además del sistema operativo.
 
 Nuestra MV utiliza el siguiente formato -creado por nosotros- al cual le asignamos extensión .mips.
-
+\\
 
 ARCHIVO EJECUTABLE
 \begin{itemize}
 \item Header (12 bytes):
 	\begin{itemize}
-    		\item 4B : data-segment size (in Bytes)
+    		\item 4B : tamaño del segmento de datos (en bytes)
 
-  		\item 4B : text-segment size (in bytes)
+  		\item 4B : tamaño del segmento de texto (en bytes)
 
-    		\item 4B : main address
+    		\item 4B : direccion del main
 	\end{itemize}
-\item Data Segment (<data-segment size>):
+\item Segmento de Datos (tamaño dado por la cabecera):
 
-    Addresses start at 0x10000000
+    Las direcciones comienzan en 0x10000000
 
-\item Text Segment (<text-segment size>):
+\item Segmento de Texto (tamaño dado por la cabecera):
 
-    Addresses start at 0x400000
+    Las direcciones comienzan en 0x400000
 \end{itemize}
-Ver sección MV para mayor información sobre el mapeo de memoria".
+\textit{Ver sección MV para mayor información sobre el mapeo de memoria.}
 
 \subsection{Lexer}
 
