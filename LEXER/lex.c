@@ -123,7 +123,7 @@ int32_t f_i3(){
         instruction = OP(opcode) + RT(1) + IMM(imm>>16);
         updateinstr(&instruction);
 
-        opcode = 33; // LW opcode       
+        opcode = 33; // LW opcode
         instruction = OP(opcode) + RS(1) + IMM(imm);
 
         return instruction;
@@ -153,7 +153,7 @@ int32_t f_i2(){
     int32_t imm;
 
     tok1 = yylex(); reg = value;
-    tok2 = yylex(); 
+    tok2 = yylex();
 
     if( tok1 == T_REG ){
         if(tok2 == T_HEX_NUM){
@@ -584,7 +584,6 @@ int main(int argv, char *arg[]){
     // TODO: add -o output file support
     executable = fopen("file.mips","wb");
     assing_label_addresses();
-    //printf("\n---\n");
 
     /* Print the header of the exeutable */
     DATA_SEGMENT_SIZE = DC - START_DATA_SEGMENT;
